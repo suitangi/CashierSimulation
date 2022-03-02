@@ -1,0 +1,35 @@
+<head>
+  <meta charset="utf-8">
+  <title>Cashier</title>
+  <link rel="stylesheet" type="text/css" href="styles/index.css">
+  <link rel="stylesheet" href="styles/jquery-confirm.min.css">
+  <link rel="stylesheet" href="styles/jquery-ui.css">
+
+  <script type="text/javascript" src="scripts/jquery-3.1.1.min.js"></script>
+  <script type="text/javascript" src="scripts/jquery-confirm.min.js"></script>
+  <script type="text/javascript" src="scripts/jquery-ui.js"></script>
+  <script type="text/javascript" src="scripts/parameters.js"></script>
+  <script type="text/javascript" src="scripts/index.js"></script>
+</head>
+
+<body>
+  <div id="StimArea">
+    <div id=WaitArea" style="width:46%;height: 100%;background-color:white;">
+      <canvas id='canvas'></canvas>
+      <table id="Cashiers">
+      </table>
+    </div>
+    <div id="CashArea">
+      <div id="sliderArea"></div>
+      <button id="cartButton">Submt Cart</button>
+    </div>
+    <div id="HUD">
+      <p>
+        Time Remaining: <span id="TimeDisplay">15:00</span><br>
+        λ= <span id="AveDisplay">0</span><br>
+        p= <span id="pDisplay">0</span>
+      </p>
+    </div>
+  </div>
+
+</body>

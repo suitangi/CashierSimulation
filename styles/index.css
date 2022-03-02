@@ -1,0 +1,238 @@
+body {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  /* overflow-y: hidden; */
+}
+
+#canvas {
+  position: absolute;
+  right: calc(54% + 170px);
+  top: 20%;
+  border: 1px solid black;
+}
+
+#StimArea {
+  width: 98%;
+  height: 100%;
+  margin: auto;
+  background-color: #eee;
+}
+
+#HUD {
+  position: absolute;
+  left: 50%;
+  top: 0%;
+  font-size: 20px;
+}
+
+#CashArea {
+  position: absolute;
+  left: 60%;
+  top: 30%;
+  width: 30%;
+}
+
+#cartButton {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  background-color: #d3d3d3;
+  border-radius: 30px;
+}
+
+#WaitArea {
+  width: 46% !important;
+  height: 100% !important;
+  background-color: white;
+}
+
+#Cashiers {
+  right: 54%;
+  position: absolute;
+  top: 20%;
+  width: 170px;
+}
+
+.rangeLabel {
+  position: absolute;
+  left: 105%;
+}
+
+.sliderLabel {
+  position: absolute;
+  text-align: right;
+  right: 105%;
+  width: 100%;
+}
+
+.sliderContainer {
+  margin-bottom: 15px;
+}
+
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;
+  /* Override default CSS styles */
+  appearance: none;
+  width: 100%;
+  /* Full-width */
+  height: 25px;
+  /* Specified height */
+  background: #d3d3d3;
+  /* Grey background */
+  outline: none;
+  /* Remove outline */
+  opacity: 0.7;
+  /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s;
+  /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1;
+  /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  /* Override default look */
+  appearance: none;
+  width: 25px;
+  /* Set a specific slider handle width */
+  height: 25px;
+  /* Slider handle height */
+  background: #04AA6D;
+  /* Green background */
+  cursor: pointer;
+  /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  /* Set a specific slider handle width */
+  height: 25px;
+  /* Slider handle height */
+  background: #04AA6D;
+  /* Green background */
+  cursor: pointer;
+  /* Cursor on hover */
+}
+
+#instr {
+  width: 30%;
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+/* Add a background color on hover */
+#BoxContainer button:hover {
+  background-color: #cccccc;
+}
+
+#BoxContainer button.muted {
+  cursor: default;
+  background-color: #eee;
+  border: 1px solid #777;
+  color: #777;
+}
+
+#BoxContainer button.muted:hover {
+  cursor: default;
+  background-color: #eee;
+  border: 1px solid #777;
+  color: #777;
+}
+
+.centerText {
+  position: relative;
+  top: 50%;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.textAnswer {
+  display: block;
+  width: 80%;
+  height: 34px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #555;
+  margin-top: 12px;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.radioContainer {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-top: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.radioContainer input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.radioContainer .radioOther {
+  opacity: 1 !important;
+  cursor: text !important;
+  margin-left: 4px;
+}
+
+.checkmark {
+  position: absolute;
+  top: 3px;
+  left: 7px;
+  height: 15px;
+  width: 15px;
+  background-color: #eee;
+  border-radius: 50%;
+}
+
+.radioContainer:hover input~.checkmark {
+  background-color: #ccc;
+}
+
+.radioContainer input:checked~.checkmark {
+  background-color: #2196F3;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.radioContainer input:checked~.checkmark:after {
+  display: block;
+}
+
+.radioContainer .checkmark:after {
+  top: 6px;
+  left: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+}
