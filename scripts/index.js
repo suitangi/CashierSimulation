@@ -462,6 +462,8 @@ function customer(x, y, dest) {
   this.destY = dest * 54 + 27;
   this.lifeTime = window.expParam.customerTravelTime * 1000;
   this.arrival = false;
+  shuffle(window.expParam.customerImages);
+  this.imgSrc = window.expParam.customerImages[0];
 
   this.drawCust = function() {
     var canvas = document.getElementById('canvas');
@@ -469,7 +471,7 @@ function customer(x, y, dest) {
     this.image = new Image(50, 50);
     this.image.width = 50;
     this.image.height = 50;
-    this.image.src = './img/person3.png';
+    this.image.src = this.imgSrc;
     ctx.drawImage(this.image, this.x - 25, this.y - 25);
   }
   this.moveCust = function (time) {
@@ -753,7 +755,8 @@ function balloonSpawn() {
   let time = roundBetter(8 + Math.random() * 6, 2);
   let left = roundBetter(55 + Math.random() * 40, 2);
   bCon.style = "animation: moveUp " + time + "s;left:" + left + "%;";
-
+  let hue = Math.floor(Math.random() * 360);
+  document.getElementById('Balloon').style = "filter: hue-rotate(" + hue + "deg);"
   window.balloon.timeout = setTimeout(function() {
     window.balloon.state = false;
     document.getElementById('BalloonContainer').style = "display: none;";

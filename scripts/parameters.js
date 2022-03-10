@@ -13,6 +13,8 @@ window.expParam = {
   practiceArrivalRate: .5,
   practiceCashierNumber: 0,
 
+  customerImages: ['./img/person3.png', './img/person4.png', './img/person5.png', './img/person6.png'],
+
   itemset: [
     {
       name: "Chocolate",
