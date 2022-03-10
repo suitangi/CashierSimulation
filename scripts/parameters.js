@@ -1,13 +1,17 @@
 window.expParam = {
 
-  items: 4,
-  cashiers: 4,
-  cashierNumber: 2,
-  customerTravelTime: 1,
-  customerWalkAreaWidth: 350,
-  customerArrivalRate: .6, //per second
+  items: 4, //number of items
+  cashiers: 4, //amount of total cashiers
+  cashierNumber: 2, //participant number
+  customerTravelTime: 1, //second
+  customerWalkAreaWidth: 350, //in pixels
+  customerArrivalRate: .2, //per second
   customerFinishRate: .1, //per second
   expTime: 15, //minutes
+  practiceTime: 3,
+  practiceCashiers: 1,
+  practiceArrivalRate: .5,
+  practiceCashierNumber: 0,
 
   itemset: [
     {
@@ -74,7 +78,7 @@ window.expParam = {
     title: 'Race'
   }, {
     question: "Do you use the following devices?",
-    choices: ["External mouse", "Touch pad", "Touch Screen"],
+    choices: ["External mouse", "Touch pad", "Touch Screen", "Other"],
     type: 'choice',
     title: 'External Devices'
   }],

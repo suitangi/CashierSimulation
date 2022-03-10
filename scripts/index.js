@@ -430,23 +430,25 @@ function feedback() {
 }
 
 function newCust(dest) {
-  var c = new customer(0, window.expParam.cashiers * 27, dest);
+  var c = new customer(0, window.cashiers.amount * 27, dest);
   window.customers.push(c);
   return c;
 }
 
 function cQueue() {
   this.x = 0;
-  this.y = window.expParam.cashiers * 27;
+
 
   this.drawQ = function() {
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
+    this.y = window.cashiers.amount * 27;
     this.image = new Image(50, 50);
     this.image.width = 50;
     this.image.height = 50;
     this.image.src = './img/person3.png';
-    ctx.drawImage(this.image, this.x - 25, this.y - 25);
+    if (window.customerQueue > 0)
+      ctx.drawImage(this.image, this.x - 25, this.y - 25);
   }
 }
 
@@ -473,7 +475,7 @@ function customer(x, y, dest) {
   this.moveCust = function (time) {
     if (this.arrival || this.lifeTime <= 0) {
       if (!this.arrival) {
-        if (this.dest != window.expParam.cashierNumber) {
+        if (this.dest != window.cashiers.number) {
           this.arrival = true;
           setTimeout(function(initialD) {
             removeCust(initialD);
@@ -548,8 +550,8 @@ function checkoutOnclick() {
   window.checkout.done = false;
   window.checkout.amount++;
   document.getElementById('pDisplay').innerText = window.checkout.amount;
-  removeCust(window.expParam.cashierNumber);
-  window.cashiers.avail.push(window.expParam.cashierNumber);
+  removeCust(window.cashiers.number);
+  window.cashiers.avail.push(window.cashiers.number);
   let li = document.getElementById('sliderArea').children;
   for (var i = 0; i < li.length; i++) {
     document.getElementById('myRange' + i).value = 0;
@@ -571,8 +573,7 @@ function update() {
     window.customers[i].moveCust(d);
   }
 
-  if (window.customerQueue > 0)
-    window.cQueue.drawQ();
+  window.cQueue.drawQ();
 
   requestAnimationFrame(update);
 
@@ -593,9 +594,15 @@ function startTrial() {
   let v;
   window.cashiers = {};
   window.cashiers.avail = [];
+  window.cashiers.amount = window.expParam.cashiers;
+  window.cashiers.number = window.expParam.cashierNumber;
   window.customers = [];
+  window.customers.ArrivalRate = window.expParam.customerArrivalRate;
   window.customerQueue = 0;
   window.checkout = {};
+  window.balloon = {};
+  window.balloon.state = false;
+  window.balloon.score = 0;
   window.checkout.entered = [];
   window.checkout.done = false;
   window.checkout.startTime = new Date();
@@ -603,13 +610,20 @@ function startTrial() {
   window.checkout.ave = 0;
   window.checkout.time = window.expParam.expTime * 60000;
 
-  for (var i = 0; i < window.expParam.cashiers; i++) {
+  if (window.practice) {
+    window.checkout.time = window.expParam.practiceTime * 60000;
+    window.cashiers.amount = window.expParam.practiceCashiers;
+    window.cashiers.number = window.expParam.practiceCashierNumber;
+    window.customers.ArrivalRate = window.expParam.practiceArrivalRate;
+  }
+
+  for (var i = 0; i < window.cashiers.amount; i++) {
     window.cashiers.avail.push(i);
   }
 
   var canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d');
-  canvas.height = 54 * window.expParam.cashiers;
+  canvas.height = 54 * window.cashiers.amount;
   canvas.width = window.expParam.customerWalkAreaWidth;
 
   for (var i = 0; i < window.expParam.items; i++) {
@@ -631,8 +645,8 @@ function startTrial() {
     }
   }
   html = ''
-  for (var i = 0; i < window.expParam.cashiers; i++) {
-    if (i == window.expParam.cashierNumber)
+  for (var i = 0; i < window.cashiers.amount; i++) {
+    if (i == window.cashiers.number)
       html += '<tr><td><img src="./img/person1.png" width="50" height="50"></td><td>You</td></tr>'
     else
       html += '<tr><td><img src="./img/person2.png" width="50" height="50"></td><td>Cashier ' + (i + 1) + '</td></tr>'
@@ -649,7 +663,11 @@ function startTrial() {
     fps: 0
   };
 
-  window.cQueue = new cQueue();
+  if (window.practice)
+    window.cQueue = new cQueue();
+
+  window.checkout.ave = roundBetter(window.customers.ArrivalRate * 60, 2);
+  document.getElementById('AveDisplay').innerText = window.checkout.ave + " / min.";
 
   update();
 
@@ -657,7 +675,7 @@ function startTrial() {
     setTimeout(function() {
       window.customerQueue += 1;
       addCustomersToQ();
-    }, randomExponential(window.expParam.customerArrivalRate) * 1000);
+    }, randomExponential(window.customers.ArrivalRate) * 1000);
   }
   addCustomersToQ();
   checkCQueue();
@@ -667,24 +685,52 @@ function checkCQueue() {
 
   let d = new Date();
   let diff = d - window.checkout.startTime;
-
-  window.checkout.ave = roundBetter(window.checkout.amount / (diff / 60000), 2);
-  document.getElementById('AveDisplay').innerText = window.checkout.ave;
-  window.checkout.time = window.expParam.expTime * 60000 - diff;
-  let m = roundBetter(window.checkout.time / 60000, 0) + ":";
+  if (window.practice)
+    window.checkout.time = window.expParam.practiceTime * 60000 - diff;
+  else
+    window.checkout.time = window.expParam.expTime * 60000 - diff;
+  let m = Math.floor(window.checkout.time / 60000) + ":";
   let s = roundBetter((window.checkout.time % 60000) / 1000, 0);
   if (s < 10)
     s = "0" + s;
   document.getElementById('TimeDisplay').innerText = m + s;
 
   if (window.checkout.time <= 0) {
-    postQuestions(0);
-    return;
+
+    if (window.practice) {
+      $.confirm({
+        title: "Practice Complete",
+        content: "The practice session is complete. The main session is about to begin. You will now be working in a group with [N] other computerized servers. As customers arrive to the checkout area, they join a single group line and then go to the next available server when their turn comes.” “You can only see the first customer waiting in line, as the rest of the line is hidden behind a fence.” “You will earn [x] for each customer that you successfully process. Thus, if you complete 10 customers, you will earn $[X]. <br><br>When there are no customers waiting in line, the balloon-popping game on the right-side of your screen starts, and you have the option to play this game to earn extra monetary reward if you want. This game is not mandatory. If you successfully click on (i.e., burst) 10 balloons, you will earn $[Y] reward. Once a new customer comes for check-out, the balloon-popping game would stop/freeze, and you would not have the option to play the game. <br><br>Reminder: the task will last for 15 minutes, and when it is over, you will be asked several survey questions. You will be rewarded your payment upon completion of the main session and the short survey.",
+        type: 'blue',
+        boxWidth: '55%',
+        useBootstrap: false,
+        typeAnimated: true,
+        buttons: {
+          close: {
+            text: "Continue",
+            btnClass: 'btn-blue',
+            action: function() {
+              window.practice = false;
+              window.expParam.customerFinishRate = roundBetter(window.checkout.amount / (window.expParam.practiceTime * 60), 2);
+              startTrial();
+            }
+          }
+        }
+      });
+      return;
+    } else {
+      postQuestions(0);
+      return;
+    }
+  }
+
+  if (!window.practice && window.customerQueue == 0 && window.cashiers.avail.indexOf(window.cashiers.number) != -1) {
+    balloonSpawn();
   }
 
   while (window.customerQueue > 0 && window.cashiers.avail.length > 0) {
     window.customerQueue--;
-    let ind = window.cashiers.avail.indexOf(window.expParam.cashierNumber);
+    let ind = window.cashiers.avail.indexOf(window.cashiers.number);
     if (ind == -1)
       ind = Math.floor(Math.random() * window.cashiers.avail.length);
 
@@ -696,6 +742,30 @@ function checkCQueue() {
   setTimeout(function() {
     checkCQueue();
   }, 200);
+}
+
+//function to spawn balloon
+function balloonSpawn() {
+  if  (window.balloon.state)
+    return;
+  window.balloon.state = true;
+  let bCon = document.getElementById('BalloonContainer');
+  let time = roundBetter(8 + Math.random() * 6, 2);
+  let left = roundBetter(55 + Math.random() * 40, 2);
+  bCon.style = "animation: moveUp " + time + "s;left:" + left + "%;";
+
+  window.balloon.timeout = setTimeout(function() {
+    window.balloon.state = false;
+    document.getElementById('BalloonContainer').style = "display: none;";
+  }, time * 1000)
+}
+
+function balloonPop() {
+  window.balloon.state = false;
+  clearTimeout(window.balloon.timeout);
+  document.getElementById('BalloonContainer').style = "display: none;";
+  window.balloon.score += 1;
+  document.getElementById('bDisplay').innerText = window.balloon.score;
 }
 
 //function to start experiment
@@ -739,6 +809,13 @@ $(document).ready(function() {
     window.expData.preQuestions = [];
     window.expData.postQuestions = [];
     window.fps = {};
+    window.practice = true;
+
+    //document.getElementById('BalloonContainer').style='display:none;'
+    document.getElementById('Balloon').onclick = function() {
+      balloonPop();
+    }
+
 
     preQuestions(0);
   }

@@ -21,14 +21,23 @@
     </div>
     <div id="CashArea">
       <div id="sliderArea"></div>
-      <button id="cartButton">Submt Cart</button>
+      <button id="cartButton">Submit Cart</button>
     </div>
     <div id="HUD">
       <p>
-        Time Remaining: <span id="TimeDisplay">15:00</span><br>
-        λ= <span id="AveDisplay">0</span><br>
-        p= <span id="pDisplay">0</span>
+        <strong>Time Remaining: <span id="TimeDisplay">15:00</span></strong><br>
+        Customers Arrival: <span id="AveDisplay">0</span><br>
+        Customers Serviced: <span id="pDisplay">0</span>
       </p>
+      <p style="position:absolute;right:0;top:0;">
+        Balloons Popped: <span id="bDisplay">0</span><br>
+        Total Bonus Earned: <span id=bonusDisplay>0</span>
+      </p>
+    </div>
+    <div id="BalloonContainer">
+      <div id="Balloon">
+        <img src="./img/balloon.png">
+      </div>
     </div>
   </div>
 
