@@ -4,6 +4,12 @@ body {
   overflow-x: hidden;
 }
 
+#secondColumn {
+  position: absolute;
+  left: 55%;
+  top: 0;
+}
+
 #BalloonContainer {
   position: absolute;
 }
@@ -11,6 +17,7 @@ body {
 #balloon {
   animation: balloons 4s ease-in-out infinite;
   transform-origin: bottom center;
+  cursor: pointer;
 }
 
 @keyframes balloons {

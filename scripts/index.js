@@ -8,6 +8,17 @@ function shuffle(array) {
   }
 }
 
+
+//random from list
+function random(list) {
+  return list[randomInt(0, list.length)];
+}
+
+//returns random integer between lower (inclusive) and upper (exclusive)
+function randomInt(lower, upper) {
+  return Math.floor(Math.random() * (upper - lower) + lower);
+}
+
 //Helper: check if 2 arrays are the same
 function arraysEqual(a, b) {
   if (a === b) return true;
@@ -431,7 +442,7 @@ function feedback() {
 
 function newCust(dest) {
   var c = new customer(0, window.cashiers.amount * 27, dest);
-  window.customers.push(c);
+  window.customers.list.push(c);
   return c;
 }
 
@@ -475,10 +486,13 @@ function customer(x, y, dest) {
     ctx.drawImage(this.image, this.x - 25, this.y - 25);
   }
   this.moveCust = function (time) {
-    if (this.arrival || this.lifeTime <= 0) {
-      if (!this.arrival) {
+    if (this.arrival || this.lifeTime <= 0) { //arrived but haven't triggered
+      if (!this.arrival) { //trigger
+        this.arrival = true;
+        this.x = this.destX;
+        this.y = this.destY;
+
         if (this.dest != window.cashiers.number) {
-          this.arrival = true;
           setTimeout(function(initialD) {
             removeCust(initialD);
             window.cashiers.avail.push(initialD);
@@ -486,7 +500,6 @@ function customer(x, y, dest) {
 
           }, randomExponential(window.expParam.customerFinishRate) * 1000, this.dest);
         } else {
-          this.arrival = true;
           loadCheckout();
         }
       }
@@ -501,9 +514,9 @@ function customer(x, y, dest) {
 }
 
 function removeCust(c) {
-  for (var i = 0; i < window.customers.length; i++) {
-    if (window.customers[i].dest == c) {
-      window.customers.splice(i, 1);
+  for (var i = 0; i < window.customers.list.length; i++) {
+    if (window.customers.list[i].dest == c) {
+      window.customers.list.splice(i, 1);
       return;
     }
   }
@@ -551,7 +564,13 @@ function checkoutOnclick() {
     return;
   window.checkout.done = false;
   window.checkout.amount++;
+  let d = new Date();
+  if (window.practice && d - window.window.checkout.startTime > 60000) {
+    window.checkout.practiceAmount++;
+  }
+
   document.getElementById('pDisplay').innerText = window.checkout.amount;
+  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus;
   removeCust(window.cashiers.number);
   window.cashiers.avail.push(window.cashiers.number);
   let li = document.getElementById('sliderArea').children;
@@ -570,9 +589,9 @@ function update() {
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   var d = new Date();
-  for (var i = 0; i < window.customers.length; i++) {
-    window.customers[i].drawCust();
-    window.customers[i].moveCust(d);
+  for (var i = 0; i < window.customers.list.length; i++) {
+    window.customers.list[i].drawCust();
+    window.customers.list[i].moveCust(d);
   }
 
   window.cQueue.drawQ();
@@ -594,15 +613,35 @@ function update() {
 function startTrial() {
   let html = '';
   let v;
-  window.cashiers = {};
+
+  if (window.practice) {
+
+
+    window.cashiers = {};
+    window.checkout = {};
+    window.customers = {};
+    window.balloon = {};
+
+    window.checkout.time = window.expParam.practiceTime * 60000;
+    window.cashiers.amount = window.expParam.practiceCashiers;
+    window.cashiers.number = window.expParam.practiceCashierNumber;
+    window.customers.ArrivalRate = window.expParam.practiceArrivalRate;
+    window.checkout.practiceAmount = 0;
+
+    //bonus randomization
+    window.checkout.bonus = random(window.expParam.bonus);
+    window.balloon.bonus = window.checkout.bonus;
+    document.getElementById('bonusAmountDisplay').innerText = window.checkout.bonus;
+  } else {
+    window.checkout.time = window.expParam.expTime * 60000;
+    window.cashiers.number = randomInt(0, window.cashiers.amount);
+    window.customers.ArrivalRate = window.expParam.customerArrivalRate;
+    document.getElementById('secondColumn').style = "";
+  }
+
   window.cashiers.avail = [];
-  window.cashiers.amount = window.expParam.cashiers;
-  window.cashiers.number = window.expParam.cashierNumber;
-  window.customers = [];
-  window.customers.ArrivalRate = window.expParam.customerArrivalRate;
+  window.customers.list = [];
   window.customerQueue = 0;
-  window.checkout = {};
-  window.balloon = {};
   window.balloon.state = false;
   window.balloon.score = 0;
   window.checkout.entered = [];
@@ -610,14 +649,7 @@ function startTrial() {
   window.checkout.startTime = new Date();
   window.checkout.amount = 0;
   window.checkout.ave = 0;
-  window.checkout.time = window.expParam.expTime * 60000;
 
-  if (window.practice) {
-    window.checkout.time = window.expParam.practiceTime * 60000;
-    window.cashiers.amount = window.expParam.practiceCashiers;
-    window.cashiers.number = window.expParam.practiceCashierNumber;
-    window.customers.ArrivalRate = window.expParam.practiceArrivalRate;
-  }
 
   for (var i = 0; i < window.cashiers.amount; i++) {
     window.cashiers.avail.push(i);
@@ -698,11 +730,11 @@ function checkCQueue() {
   document.getElementById('TimeDisplay').innerText = m + s;
 
   if (window.checkout.time <= 0) {
-
+    window.cashiers.amount = random(window.expParam.cashiers);
     if (window.practice) {
       $.confirm({
-        title: "Practice Complete",
-        content: "The practice session is complete. The main session is about to begin. You will now be working in a group with [N] other computerized servers. As customers arrive to the checkout area, they join a single group line and then go to the next available server when their turn comes.” “You can only see the first customer waiting in line, as the rest of the line is hidden behind a fence.” “You will earn [x] for each customer that you successfully process. Thus, if you complete 10 customers, you will earn $[X]. <br><br>When there are no customers waiting in line, the balloon-popping game on the right-side of your screen starts, and you have the option to play this game to earn extra monetary reward if you want. This game is not mandatory. If you successfully click on (i.e., burst) 10 balloons, you will earn $[Y] reward. Once a new customer comes for check-out, the balloon-popping game would stop/freeze, and you would not have the option to play the game. <br><br>Reminder: the task will last for 15 minutes, and when it is over, you will be asked several survey questions. You will be rewarded your payment upon completion of the main session and the short survey.",
+        title: "Practice Completed",
+        content: "The practice session is complete. The main session is about to begin. You will now be working in a group with <strong>" + window.cashiers.amount + "</strong> other computerized servers. As customers arrive to the checkout area, they join a single group line and then go to the next available server when their turn comes. You can only see the first customer waiting in line, as the rest of the line is hidden behind a wall. You will earn <strong>$" + window.checkout.bonus + "</strong> for each customer that you successfully process. Thus, if you complete 10 customers, you will earn $" + (window.checkout.bonus * 10) + ". <br><br>When there are no customers waiting in line, the balloon-popping game on the right-side of your screen starts, and you have the option to play this game to earn extra monetary reward if you want. This game is not mandatory. If you successfully click on (i.e., burst) 10 balloons, you will earn <strong>$" + window.balloon.bonus + "</strong> reward. Once a new customer comes for check-out, the balloon-popping game will stop, and you will not have the option to play the game. <br><br><strong>Reminder:</strong> the task will last for 15 minutes, and when it is over, you will be asked a few survey questions. You will be rewarded your payment upon completion of the main session and the short survey.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -713,7 +745,7 @@ function checkCQueue() {
             btnClass: 'btn-blue',
             action: function() {
               window.practice = false;
-              window.expParam.customerFinishRate = roundBetter(window.checkout.amount / (window.expParam.practiceTime * 60), 2);
+              window.expParam.customerFinishRate = roundBetter(window.checkout.practiceAmount / ((window.expParam.practiceTime - 1) * 60), 2);
               startTrial();
             }
           }
@@ -721,7 +753,23 @@ function checkCQueue() {
       });
       return;
     } else {
-      postQuestions(0);
+      $.confirm({
+        title: "Main Session Completed",
+        content: "You have completed the main session. There will be a few survey questions after this.<br>Customers serviced: <strong>" + window.checkout.amount + "</strong><br>Balloons popped: <strong>" + window.balloon.score + "</strong><br>Total bonus earned: <strong>$" + ((Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus) + "</strong><br>",
+        type: 'blue',
+        boxWidth: '55%',
+        useBootstrap: false,
+        typeAnimated: true,
+        buttons: {
+          close: {
+            text: "Continue",
+            btnClass: 'btn-blue',
+            action: function() {
+              postQuestions(0);
+            }
+          }
+        }
+      });
       return;
     }
   }
@@ -753,7 +801,7 @@ function balloonSpawn() {
   window.balloon.state = true;
   let bCon = document.getElementById('BalloonContainer');
   let time = roundBetter(8 + Math.random() * 6, 2);
-  let left = roundBetter(55 + Math.random() * 40, 2);
+  let left = roundBetter(50 + Math.random() * 40, 2);
   bCon.style = "animation: moveUp " + time + "s;left:" + left + "%;";
   let hue = Math.floor(Math.random() * 360);
   document.getElementById('Balloon').style = "filter: hue-rotate(" + hue + "deg);"
@@ -766,6 +814,7 @@ function balloonSpawn() {
 function balloonPop() {
   window.balloon.state = false;
   clearTimeout(window.balloon.timeout);
+  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus;
   document.getElementById('BalloonContainer').style = "display: none;";
   window.balloon.score += 1;
   document.getElementById('bDisplay').innerText = window.balloon.score;
@@ -818,6 +867,8 @@ $(document).ready(function() {
     document.getElementById('Balloon').onclick = function() {
       balloonPop();
     }
+
+    document.getElementById('secondColumn').style = "display:none;";
 
 
     preQuestions(0);
