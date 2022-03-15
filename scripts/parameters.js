@@ -104,7 +104,7 @@ window.expParam = {
       type: 'text',
       title: 'Task'
     }, {
-      question: "This sentence is here to give some instrucctions on the experiment that will happen after you click next. This sentence is here to demonstrate what this instruction box will look like as it makes the entire instruction longer.",
+      question: 'You will be completing a 3-min practice session on the next screen. <br><img src="./img/screen1.png"> <br><br> This is an individual task which will give you practice before you participate in the main session. <br> You will be acting as a cashier in a supermarket. Your customers each have five items in their cart. To process a customer’s order, slide each bar to match the listed price. Once all items are matched correctly, click submit button to move to the next cart. The “Submit Cart” button will remain inactive until you correctly set all five prices. <br> This practice session is to ensure you can do the mechanics of the task on your machine. The screen will auto-advance after 3 minutes.',
       type: 'text',
       title: 'Task'
     },

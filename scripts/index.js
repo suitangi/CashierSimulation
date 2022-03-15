@@ -531,6 +531,7 @@ function loadCheckout() {
   for (var i = 0; i < li.length; i++) {
     document.getElementById('myRange' + i).value = 0;
     document.getElementById('myRangeLabel' + i).innerText = '$0.00'
+    window.checkout.entered[i] = 0;
     txt = "$" + window.checkout.items[i].price;
     if (txt.length == 4)
       txt += '0';
@@ -669,10 +670,13 @@ function startTrial() {
     document.getElementById('myRange' + i).oninput = function() {
       let id = this.getAttribute('data-id');
       let txt = '$' + roundBetter(this.value, 2);
+
+      //fix display issue
       if (txt.length == 4)
         txt += '0';
       else if (txt.length == 2)
         txt += '.00'
+
       document.getElementById('myRangeLabel' + id).innerText = txt;
       window.checkout.entered[id] = roundBetter(this.value, 2);
       checkCheckout();
@@ -823,6 +827,7 @@ function balloonPop() {
 //function to start experiment
 function startExp() {
   console.log("Experiment Started");
+  document.getElementById('StimArea').style="";
   startTrial();
 }
 
