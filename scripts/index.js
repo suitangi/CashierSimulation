@@ -198,7 +198,7 @@ function preQuestions(qNum) {
 function postQuestions(qNum) {
   if (qNum == window.expParam.postquestions.length) {
     console.log("Experiment Done");
-    //saveData(new Date().getTime() + "" + Math.floor(Math.random() * 10) + ".csv", dataToCSV());
+    saveData(new Date().getTime() + "" + Math.floor(Math.random() * 10) + ".csv", dataToCSV());
   } else {
     let question = window.expParam.postquestions[qNum],
       html = '';
@@ -363,8 +363,9 @@ function postQuestions(qNum) {
 }
 
 function dataToCSV() {
+  let i, j, tmp;
   var csv = "";
-  csv += 'Bonus,' + window.bonusAmount + '\n'
+  csv += 'Bonus,' + ((Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus) + '\n'
   csv += '\nPrequestion,Answer\n'
   for (i = 0; i < window.expData.preQuestions.length; i++) {
     csv += "\"" + window.expData.preQuestions[i].question + '","' +
@@ -382,13 +383,27 @@ function dataToCSV() {
     }
   }
 
-  //record trial data
-  csv += 'ValidClickNumber,BlockNumber,MaxTimePerPatch,TotalTimeTask,PatchNumber,PatchSS,CurrentSS,PixelsPerSec,clickX,clickY,TimeInPatch,InterClickTime,PatchClick,Target?,';
-  csv += 'sName,sNum,Points,TotalPoints,ElapsedTimeOnTask,TcurrentCt1,TcurrentCt2,TcurrentCt3,TcurrentCt4,Tname1,Tnumber1,Tpct1,TPoints1,TpointProb1,';
-  csv += 'Tname2,Tnumber2,Tpct2,TPoints2,TpointProb2,Tname3,Tnumber3,Tpct3,TPoints3,TpointProb3,Tname4,Tnumber4,Tpct4,TPoints4,TpointProb4\n';
-  for (var i = 0; i < window.trialData.length; i++) {
-    csv += window.trialData[i].ValidClickNumber + "," + window.trialData[i].BlockNumber + "," + window.trialData[i].MaxTimePerPatch + "," + window.trialData[i].TotalTimeTask + "," + window.trialData[i].patchNum + "," + window.trialData[i].patchSS + "," + window.trialData[i].currentSS + "," + window.trialData[i].pixelsPerSec + "," + window.trialData[i].clickx + "," + window.trialData[i].clicky + "," + window.trialData[i].TimeInPatch + "," + window.trialData[i].InterClickTime + "," + window.trialData[i].PatchClick + "," + window.trialData[i].Target + "," + window.trialData[i].Clickname + "," + window.trialData[i].Clicknum + "," + window.trialData[i].Points + "," + window.trialData[i].TotalPoints + "," + window.trialData[i].ElapsedTimeOnTask + "," + window.trialData[i].TcurrentCt1 + "," + window.trialData[i].TcurrentCt2 + "," + window.trialData[i].TcurrentCt3 + "," + window.trialData[i].TcurrentCt4 + "," + window.trialData[i].Tname1 + "," + window.trialData[i].Tnumber1 + "," + window.trialData[i].Tpct1 + "," + window.trialData[i].TPoints1 + "," + window.trialData[i].TpointProb1 + "," + window.trialData[i].Tname2 + "," + window.trialData[i].Tnumber2 + "," + window.trialData[i].Tpct2 + "," + window.trialData[i].TPoints2 + "," + window.trialData[i].TpointProb2 + "," + window.trialData[i].Tname3 + "," + window.trialData[i].Tnumber3 + "," + window.trialData[i].Tpct3 + "," + window.trialData[i].TPoints3 + "," + window.trialData[i].TpointProb3 + "," + window.trialData[i].Tname4 + "," + window.trialData[i].Tnumber4 + "," + window.trialData[i].Tpct4 + "," + window.trialData[i].TPoints4 + "," + window.trialData[i].TpointProb4 + '\n';
+  csv += '\ncustomersServed\n';
+  csv += window.checkout.amount;
+  csv += '\nballoonPopped\n'
+  csv += window.balloon.score;
+  csv += '\nunitPayment\n';
+  csv += window.checkout.bonus;
+  csv += '\nComputerServiceRate\n';
+  csv += window.expParam.customerFinishRate;
+  csv += '\nPlayerCashierNumber\n'
+  csv += window.cashiers.number + 1;
+
+  csv += '\n\nCustomerNumber,CustomerArrivalTime,CustomerCashierTime,CustomerServicedTime\n'
+  for (i = 0; i < window.expData.blockData.length; i++) {
+    for (j = 0; j < window.expData.blockData[i].length; j++) {
+      tmp = window.expData.blockData[i][j];
+      csv += tmp.number + ',' + tmp.arrival + ',' + tmp.cashier + ',' + tmp.serviced + '\n'
+    }
   }
+
+  //record trial data
+
   return csv;
 }
 
@@ -446,22 +461,22 @@ function newCust(dest) {
   return c;
 }
 
-function cQueue() {
-  this.x = 0;
-
-
-  this.drawQ = function() {
-    var canvas = document.getElementById('canvas');
-    var ctx = canvas.getContext('2d');
-    this.y = window.cashiers.amount * 27;
-    this.image = new Image(50, 50);
-    this.image.width = 50;
-    this.image.height = 50;
-    this.image.src = './img/person3.png';
-    if (window.customerQueue > 0)
-      ctx.drawImage(this.image, this.x - 25, this.y - 25);
-  }
-}
+// function cQueue() {
+//   this.x = 0;
+//
+//
+//   this.drawQ = function() {
+//     var canvas = document.getElementById('canvas');
+//     var ctx = canvas.getContext('2d');
+//     this.y = window.cashiers.amount * 27;
+//     this.image = new Image(50, 50);
+//     this.image.width = 50;
+//     this.image.height = 50;
+//     this.image.src = './img/person3.png';
+//     if (window.customerQueue > 0)
+//       ctx.drawImage(this.image, this.x - 25, this.y - 25);
+//   }
+// }
 
 function customer(x, y, dest) {
   this.sx = x;
@@ -475,6 +490,9 @@ function customer(x, y, dest) {
   this.arrival = false;
   shuffle(window.expParam.customerImages);
   this.imgSrc = window.expParam.customerImages[0];
+  this.arrivalTime = window.customers.arrivalTime.shift();
+  this.number = window.customers.number;
+  window.customers.number++;
 
   this.drawCust = function() {
     var canvas = document.getElementById('canvas');
@@ -492,6 +510,8 @@ function customer(x, y, dest) {
         this.x = this.destX;
         this.y = this.destY;
 
+        let d = new Date();
+
         if (this.dest != window.cashiers.number) {
           setTimeout(function(initialD) {
             removeCust(initialD);
@@ -501,6 +521,14 @@ function customer(x, y, dest) {
           }, randomExponential(window.expParam.customerFinishRate) * 1000, this.dest);
         } else {
           loadCheckout();
+          window.balloon.state = false;
+          clearTimeout(window.balloon.timeout);
+          document.getElementById('BalloonContainer').style = "display: none;";
+          window.expData.blockData[window.expData.blockData.length - 1].push({
+            number: this.number,
+            arrival: this.arrivalTime,
+            cashier: d - window.checkout.startTime
+          });
         }
       }
 
@@ -570,6 +598,9 @@ function checkoutOnclick() {
     window.checkout.practiceAmount++;
   }
 
+  let dlist = window.expData.blockData[window.expData.blockData.length - 1];
+  dlist[dlist.length - 1].serviced = d - window.checkout.startTime;
+
   document.getElementById('pDisplay').innerText = window.checkout.amount;
   document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus;
   removeCust(window.cashiers.number);
@@ -595,7 +626,7 @@ function update() {
     window.customers.list[i].moveCust(d);
   }
 
-  window.cQueue.drawQ();
+  // window.cQueue.drawQ();
 
   requestAnimationFrame(update);
 
@@ -633,6 +664,7 @@ function startTrial() {
     window.checkout.bonus = random(window.expParam.bonus);
     window.balloon.bonus = window.checkout.bonus;
     document.getElementById('bonusAmountDisplay').innerText = window.checkout.bonus;
+    document.getElementById('bonusAmountDisplay1').innerText = window.checkout.bonus;
   } else {
     window.checkout.time = window.expParam.expTime * 60000;
     window.cashiers.number = randomInt(0, window.cashiers.amount);
@@ -642,6 +674,7 @@ function startTrial() {
 
   window.cashiers.avail = [];
   window.customers.list = [];
+  window.customers.number = 0;
   window.customerQueue = 0;
   window.balloon.state = false;
   window.balloon.score = 0;
@@ -651,6 +684,8 @@ function startTrial() {
   window.checkout.amount = 0;
   window.checkout.ave = 0;
 
+  window.expData.blockData.push([]);
+  window.customers.arrivalTime = [];
 
   for (var i = 0; i < window.cashiers.amount; i++) {
     window.cashiers.avail.push(i);
@@ -701,8 +736,8 @@ function startTrial() {
     fps: 0
   };
 
-  if (window.practice)
-    window.cQueue = new cQueue();
+  // if (window.practice)
+  //   window.cQueue = new cQueue();
 
   window.checkout.ave = roundBetter(window.customers.ArrivalRate * 60, 2);
   document.getElementById('AveDisplay').innerText = window.checkout.ave + " / min.";
@@ -712,6 +747,8 @@ function startTrial() {
   function addCustomersToQ() {
     setTimeout(function() {
       window.customerQueue += 1;
+      let d = new Date();
+      window.customers.arrivalTime.push(d - window.checkout.startTime);
       addCustomersToQ();
     }, randomExponential(window.customers.ArrivalRate) * 1000);
   }
@@ -818,8 +855,8 @@ function balloonSpawn() {
 function balloonPop() {
   window.balloon.state = false;
   clearTimeout(window.balloon.timeout);
-  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus;
   document.getElementById('BalloonContainer').style = "display: none;";
+  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus;
   window.balloon.score += 1;
   document.getElementById('bDisplay').innerText = window.balloon.score;
 }
@@ -865,6 +902,7 @@ $(document).ready(function() {
     window.expData = {};
     window.expData.preQuestions = [];
     window.expData.postQuestions = [];
+    window.expData.blockData = [];
     window.fps = {};
     window.practice = true;
 
