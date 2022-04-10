@@ -713,6 +713,9 @@ function startTrial() {
     document.getElementById('bLine').hidden = true;
     document.getElementById('timeLine').hidden = true;
     document.getElementById('bBonusLine').hidden = true;
+
+    document.getElementById('pDisplay').innerText = '0/3';
+
   } else if (window.session == 1) {
 
     //unhide some displays
@@ -725,15 +728,22 @@ function startTrial() {
     //randomize arrival rate (for the entire exp)
     window.customers.ArrivalRate = random(window.expParam.customerArrivalRates);
     window.expData.arrivalRate = window.customers.ArrivalRate;
+
+    document.getElementById('pDisplay').innerText = '0';
+
   } else if (window.session == 2) {
 
     //unhide ballon displays
     document.getElementById('bBonusLine').hidden = false;
     document.getElementById('bLine').hidden = false;
+    document.getElementById('bDisplay').innerText = '0/3';
 
     //hide time display
     document.getElementById('timeLine').hidden = true;
     window.checkout.time = 900000; //default time is 15 min. (not displayed though);
+
+    document.getElementById('pDisplay').innerText = '0';
+
   } else if (window.session == 3) {
     //unhide some displays
     document.getElementById('timeLine').hidden = false;
@@ -741,6 +751,9 @@ function startTrial() {
     //setup timing
     window.checkout.time = window.expParam.mainSession2Time * 60000;
     window.checkout.timeTotal = window.expParam.mainSession2Time;
+
+    document.getElementById('bDisplay').innerText = '0';
+    document.getElementById('pDisplay').innerText = '0';
   } else if (window.session == 4) {
 
     //setup timing
@@ -750,6 +763,9 @@ function startTrial() {
     //change bonus
     window.checkout.bonus = window.expParam.mainSession3CheckoutP;
     document.getElementById('bonusAmountDisplay').innerText = window.checkout.bonus;
+
+    document.getElementById('bDisplay').innerText = '0';
+    document.getElementById('pDisplay').innerText = '0';
   }
 
   window.cashiers.avail = [];
@@ -764,6 +780,10 @@ function startTrial() {
   window.checkout.amount = 0;
   window.checkout.ave = 0;
 
+  if (window.session == 2)
+    window.customerQueue++;
+
+
   window.expData.blockData.push([]);
   window.customers.arrivalTime = [];
 
@@ -776,7 +796,7 @@ function startTrial() {
   canvas.height = 54 * window.cashiers.amount;
   canvas.width = window.expParam.customerWalkAreaWidth;
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount;
+  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? '/3': '');
   document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
 
   for (var i = 0; i < window.expParam.items; i++) {
@@ -969,7 +989,7 @@ function balloonPop() {
   document.getElementById('BalloonContainer').style = "display: none;";
   document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
   window.balloon.score += 1;
-  document.getElementById('bDisplay').innerText = window.balloon.score;
+  document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2? '/3': '');
 
   if (window.session == 2 && window.balloon.score == window.expParam.practiceSession2Target) {
     $.confirm({
