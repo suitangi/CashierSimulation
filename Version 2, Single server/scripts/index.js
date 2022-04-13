@@ -84,7 +84,7 @@ function preQuestions(qNum) {
     window.checkout.bonus = random(window.expParam.bonus);
     $.confirm({
       title: "Practice Session 1",
-      content: "This is a practice session. You will not be paid, but you will see the amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong>",
+      content: "This is a practice session. You will not be paid, but you will see the amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong> After you have completed at least " + window.expParam.practiceSession1Target +" customers, you can move on by clicking the “next” button when you feel ready for the main game.",
       type: 'blue',
       boxWidth: '55%',
       useBootstrap: false,
@@ -145,7 +145,7 @@ function preQuestions(qNum) {
           action: function() {
             if (question.type == 'textbox') {
               var textAns = this.$content.find('.textAnswer').val();
-              if (!textAns) {
+              if (!textAns && question.required) {
                 $.alert({
                   title: 'Error',
                   boxWidth: '25%',
@@ -274,7 +274,7 @@ function postQuestions(qNum) {
           action: function() {
             if (question.type == 'textbox') {
               var textAns = this.$content.find('.textAnswer').val();
-              if (!textAns) {
+              if (!textAns && question.required) {
                 $.alert({
                   title: 'Error',
                   boxWidth: '25%',
@@ -391,7 +391,7 @@ function postQuestions(qNum) {
 function dataToCSV() {
   let i, j, tmp;
   var csv = "";
-  csv += 'Bonus,' + ((Math.floor(window.balloon.score / 10) + window.checkout.amount) * window.checkout.bonus) + '\n'
+  csv += 'Bonus,' + window.expData.bonus + '\n'
   csv += '\nPrequestion,Answer\n'
   for (i = 0; i < window.expData.preQuestions.length; i++) {
     csv += "\"" + window.expData.preQuestions[i].question + '","' +
@@ -420,11 +420,15 @@ function dataToCSV() {
   csv += '\nPlayerCashierNumber\n'
   csv += window.cashiers.number + 1;
 
-  csv += '\n\nCustomerNumber,CustomerArrivalTime,CustomerCashierTime,CustomerServicedTime\n'
+  csv += '\n\nSession,Type,Customer/BalloonNumber,CustomerArrivalTime/BalloonSpawnTime,CustomerCashierTime/BalloonPoppedTime,CustomerServicedTime\n'
   for (i = 0; i < window.expData.blockData.length; i++) {
     for (j = 0; j < window.expData.blockData[i].length; j++) {
       tmp = window.expData.blockData[i][j];
-      csv += tmp.number + ',' + tmp.arrival + ',' + tmp.cashier + ',' + tmp.serviced + '\n'
+      csv += tmp.session + ',' + tmp.type + ',';
+      if (tmp.type == 'balloon')
+        csv += tmp.number + ',' + tmp.spawn + ',' + tmp.popped + '\n';
+      else if (tmp.type == 'customer')
+        csv += tmp.number + ',' + tmp.arrival + ',' + tmp.cashier + ',' + tmp.serviced + '\n';
     }
   }
 
@@ -546,11 +550,13 @@ function customer(x, y, dest) {
 
           }, randomExponential(window.expParam.customerFinishRate) * 1000, this.dest);
         } else {
-          loadCheckout();
           window.balloon.state = false;
+          loadCheckout();
           clearTimeout(window.balloon.timeout);
           document.getElementById('BalloonContainer').style = "display: none;";
           window.expData.blockData[window.expData.blockData.length - 1].push({
+            type: "customer",
+            session: window.session,
             number: this.number,
             arrival: this.arrivalTime,
             cashier: d - window.checkout.startTime
@@ -606,7 +612,7 @@ function checkCheckout() {
     }
   }
   if (r) {
-    document.getElementById("cartButton").style = "background-color: #65e098;";
+    document.getElementById("cartButton").style = "background-color: #65e098; cursor: pointer;";
     window.checkout.done = true;
   } else {
     document.getElementById("cartButton").style = "";
@@ -624,8 +630,10 @@ function checkoutOnclick() {
   let dlist = window.expData.blockData[window.expData.blockData.length - 1];
   dlist[dlist.length - 1].serviced = d - window.checkout.startTime;
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? '/3': '');
-  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
+  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  if (window.session != 0 && window.session != 2)
+    document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
   removeCust(window.cashiers.number);
   window.cashiers.avail.push(window.cashiers.number);
   let li = document.getElementById('sliderArea').children;
@@ -638,24 +646,29 @@ function checkoutOnclick() {
   document.getElementById("cartButton").style = "";
 
   if (window.session == 0 && window.checkout.amount == window.expParam.practiceSession1Target) {
-    $.confirm({
-      title: "Main Session 1",
-      content: "This is a 2-min main session 1. You will be paid a bonus of $ <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
-      type: 'blue',
-      boxWidth: '55%',
-      useBootstrap: false,
-      typeAnimated: true,
-      buttons: {
-        close: {
-          text: "Continue",
-          btnClass: 'btn-blue',
-          action: function() {
-            window.session++;
-            startTrial();
+    document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
+    document.getElementById("nextButton").onclick = function () {
+      $.confirm({
+        title: "Main Session 1",
+        content: "This is a 2-min main session 1. You will be paid a bonus of $ <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
+        type: 'blue',
+        boxWidth: '55%',
+        useBootstrap: false,
+        typeAnimated: true,
+        buttons: {
+          close: {
+            text: "Continue",
+            btnClass: 'btn-blue',
+            action: function() {
+              window.session++;
+              document.getElementById("nextButton").style = "display: none;"
+              document.getElementById("nextButton").onclick = function () {};
+              startTrial();
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 }
 
@@ -733,18 +746,26 @@ function startTrial() {
 
   } else if (window.session == 2) {
 
+    window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;;
+
     //unhide ballon displays
     document.getElementById('bBonusLine').hidden = false;
     document.getElementById('bLine').hidden = false;
-    document.getElementById('bDisplay').innerText = '0/3';
+    document.getElementById('bDisplay').innerText = '0/' + window.expParam.practiceSession2Target;
 
     //hide time display
     document.getElementById('timeLine').hidden = true;
     window.checkout.time = 900000; //default time is 15 min. (not displayed though);
 
+    //unhide next button
+    document.getElementById("nextButton").style = "";
+
     document.getElementById('pDisplay').innerText = '0';
 
   } else if (window.session == 3) {
+
+    window.customers.ArrivalRate = window.expData.arrivalRate;
+
     //unhide some displays
     document.getElementById('timeLine').hidden = false;
 
@@ -755,6 +776,8 @@ function startTrial() {
     document.getElementById('bDisplay').innerText = '0';
     document.getElementById('pDisplay').innerText = '0';
   } else if (window.session == 4) {
+
+    window.customers.ArrivalRate = window.expData.arrivalRate;
 
     //setup timing
     window.checkout.time = window.expParam.mainSession3Time * 60000;
@@ -774,12 +797,14 @@ function startTrial() {
   window.customerQueue = 0;
   window.balloon.state = false;
   window.balloon.score = 0;
+  window.balloon.number = 0;
   window.checkout.entered = [];
   window.checkout.done = false;
   window.checkout.startTime = new Date();
   window.checkout.amount = 0;
   window.checkout.ave = 0;
 
+  //session starts with a customer to prevent ballon immediately spawning
   if (window.session == 2)
     window.customerQueue++;
 
@@ -796,8 +821,9 @@ function startTrial() {
   canvas.height = 54 * window.cashiers.amount;
   canvas.width = window.expParam.customerWalkAreaWidth;
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? '/3': '');
-  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
+  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
 
   for (var i = 0; i < window.expParam.items; i++) {
     html += '<div class="sliderContainer"><span class="sliderLabel">No Item ' + (i + 1) + ': $0.00</span><strong><span class="rangeLabel" id="myRangeLabel' + i + '">$0.00</span></strong> <input type="range" min="0" max="8" value="0" step="0.05" data-id=' + i + ' class="slider" id="myRange' + i + '"></div>'
@@ -878,12 +904,13 @@ function checkCQueue() {
     s = "0" + s;
   document.getElementById('TimeDisplay').innerText = m + s;
 
+  //time ended
   if (window.checkout.time <= 0) {
     if (window.session == 0 || window.session == 2) {
     } else if (window.session == 1) {
       $.confirm({
         title: "Practice Session 2",
-        content: "“This is a practice session for the next game. You will not be paid, but you will see the amount that you would have earned. In addition to checking out customers, you have the option to play a balloon-popping game whenever you are not assigned a customer to earn extra monetary reward. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have popped at least 3 balloons, you can move on by clicking the “next” button when you feel ready for the main game.",
+        content: "This is a practice session for the next game. You will not be paid, but you will see the amount that you would have earned. In addition to checking out customers, you have the option to play a balloon-popping game whenever you are not assigned a customer to earn extra monetary reward. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have popped at least " + window.expParam.practiceSession2Target + " balloons, you can move on by clicking the “next” button when you feel ready for the main game.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -893,6 +920,7 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
+              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
               window.session++;
               startTrial();
               //postQuestions(0);
@@ -904,7 +932,7 @@ function checkCQueue() {
     } else if (window.session == 3) {
       $.confirm({
         title: "Main Session 3",
-        content: "Instructions for main session 3",
+        content: "This is a 6-min main session. Serving customers is not rewarding. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -914,6 +942,7 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
+              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
               window.session++;
               startTrial();
               //postQuestions(0);
@@ -925,7 +954,7 @@ function checkCQueue() {
     } else if (window.session == 4) {
       $.confirm({
         title: "Demographic Questions",
-        content: "Instructions for Demographic Questions",
+        content: "Congratulations on completing the experiment! There are a few questions for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -935,6 +964,7 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
+              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
               postQuestions(0);
             }
           }
@@ -968,48 +998,167 @@ function checkCQueue() {
 
 //function to spawn balloon
 function balloonSpawn() {
+
+  //don't span if a balloon already active
   if (window.balloon.state)
     return;
+
   window.balloon.state = true;
+  window.balloon.number++;
+
+  //random color and swaying
   let bCon = document.getElementById('BalloonContainer');
   let time = roundBetter(8 + Math.random() * 6, 2);
   let left = roundBetter(50 + Math.random() * 40, 2);
   bCon.style = "animation: moveUp " + time + "s;left:" + left + "%;";
   let hue = Math.floor(Math.random() * 360);
   document.getElementById('Balloon').style = "filter: hue-rotate(" + hue + "deg);"
+
+  //timeout to despawn balloon
   window.balloon.timeout = setTimeout(function() {
     window.balloon.state = false;
     document.getElementById('BalloonContainer').style = "display: none;";
   }, time * 1000)
+
+  //record data
+  let d = new Date();
+  window.expData.blockData[window.expData.blockData.length - 1].push({
+    type: "balloon",
+    session: window.session,
+    number: window.balloon.number,
+    spawn: d - window.checkout.startTime,
+    popped: -1
+  });
 }
 
 function balloonPop() {
   window.balloon.state = false;
   clearTimeout(window.balloon.timeout);
   document.getElementById('BalloonContainer').style = "display: none;";
-  document.getElementById('bonusDisplay').innerText = (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
   window.balloon.score += 1;
-  document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2? '/3': '');
 
+  //display scores
+  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  if (window.session != 2)
+    document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2? ('/' + window.expParam.practiceSession2Target): '');
+
+  //recored popped time
+  let d = new Date();
+  let dlist = window.expData.blockData[window.expData.blockData.length - 1];
+  dlist[dlist.length - 1].popped = d - window.checkout.startTime;
+
+
+  //practice trial done, enable button
   if (window.session == 2 && window.balloon.score == window.expParam.practiceSession2Target) {
-    $.confirm({
-      title: "Main Session 2",
-        content: "Quiz here",
-      type: 'blue',
-      boxWidth: '55%',
-      useBootstrap: false,
-      typeAnimated: true,
-      buttons: {
-        close: {
-          text: "Continue",
-          btnClass: 'btn-blue',
-          action: function() {
-            window.session++;
-            startTrial();
-          }
+
+    document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
+    document.getElementById("nextButton").onclick = function () {
+
+      function midQ() {
+        window.balloon.state = true;
+        clearTimeout(window.balloon.timeout);
+        let question = window.expParam.midQuestion;
+        let html = question.question + '<br>';
+        shuffle(question.choices);
+        for (var i = 0; i < question.choices.length; i++) {
+          html += '<label class="radioContainer">' +
+            question.choices[i].text +
+            '<input type="radio" name="radio"> <span class="checkmark"></span> </label>'
         }
+        $.confirm({
+          title: question.title,
+          content: html,
+          type: 'blue',
+          boxWidth: '55%',
+          useBootstrap: false,
+          typeAnimated: true,
+          buttons: {
+            formSubmit: {
+              text: 'Next',
+              btnClass: 'btn-blue',
+              action: function() {
+                var radioList = this.$content.find($('.radioContainer'));
+                for (var j = 0; j < radioList.length; j++) {
+                  if (radioList[j].getElementsByTagName('input')[0].checked) {
+
+                    //push answer
+                    window.expData.preQuestions.push({
+                      question: question.title,
+                      answer: question.choices[j]
+                    });
+                    if (question.choices[j].correct) { //correcly answered
+                      $.confirm({
+                        title: "Main Session 2",
+                          content: "This is a 6-min main session. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
+                        type: 'blue',
+                        boxWidth: '55%',
+                        useBootstrap: false,
+                        typeAnimated: true,
+                        buttons: {
+                          close: {
+                            text: "Continue",
+                            btnClass: 'btn-blue',
+                            action: function() {
+                              window.session++;
+                              document.getElementById("nextButton").style = "display: none;"
+                              document.getElementById('BalloonContainer').style = "display: none;";
+                              document.getElementById("nextButton").onclick = function () {};
+                              startTrial();
+                            }
+                          }
+                        }
+                      });
+                      return true;
+                    } else { //incorrect answer
+                      $.confirm({
+                        title: "Incorrect",
+                        content: "Wrong! The tip is: Working faster allows more time to pop balloons, and, therefore, the potential to earn more bonus. Try again!",
+                        type: 'red',
+                        boxWidth: '55%',
+                        useBootstrap: false,
+                        typeAnimated: true,
+                        buttons: {
+                          close: {
+                            text: "Try Again",
+                            btnClass: 'btn-red',
+                            action: function() {
+                              midQ();
+                            }
+                          }
+                        },
+                      });
+                      return true;
+                    }
+                  }
+                }
+                $.alert({
+                  title: 'Error',
+                  boxWidth: '25%',
+                  useBootstrap: false,
+                  content: 'Please select an answer',
+                  type: 'red',
+                });
+                return false;
+              }
+            }
+          },
+          onContentReady: function() {
+            var jc = this;
+            this.$content.find('form').on('submit', function(e) {
+              e.preventDefault();
+              jc.$$formSubmit.trigger('click');
+            });
+          },
+          onOpenBefore: function() {
+            if (question.type == 'specialKey') {
+              this.buttons.formSubmit.hide();
+            }
+          }
+        });
       }
-    });
+      midQ();
+    }
   }
 }
 
@@ -1055,6 +1204,7 @@ $(document).ready(function() {
     window.expData.preQuestions = [];
     window.expData.postQuestions = [];
     window.expData.blockData = [];
+    window.expData.bonus = 0;
     window.fps = {};
     window.session = 0;
 
