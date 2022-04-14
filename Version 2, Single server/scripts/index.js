@@ -82,6 +82,7 @@ function preQuestions(qNum) {
   if (qNum == window.expParam.prequestions.length) {
     window.checkout = {};
     window.checkout.bonus = random(window.expParam.bonus);
+    window.expData.checkoutBonus = window.checkout.bonus;
     $.confirm({
       title: "Practice Session 1",
       content: "This is a practice session. You will not be paid, but you will see the amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong> After you have completed at least " + window.expParam.practiceSession1Target +" customers, you can move on by clicking the “next” button when you feel ready for the main game.",
@@ -409,16 +410,18 @@ function dataToCSV() {
     }
   }
 
-  csv += '\ncustomersServed\n';
-  csv += window.checkout.amount;
-  csv += '\nballoonPopped\n'
-  csv += window.balloon.score;
+  csv += '\nQuiz attempted\n';
+  csv += window.expData.midQAttempt;
+  // csv += '\ncustomersServed\n';
+  // csv += window.checkout.amount;
+  // csv += '\nballoonPopped\n'
+  // csv += window.balloon.score;
   csv += '\nunitPayment\n';
-  csv += window.checkout.bonus;
-  csv += '\nComputerServiceRate\n';
-  csv += window.expParam.customerFinishRate;
-  csv += '\nPlayerCashierNumber\n'
-  csv += window.cashiers.number + 1;
+  csv += window.expData.checkoutBonus;
+  // csv += '\nComputerServiceRate\n';
+  // csv += window.expParam.customerFinishRate;
+  // csv += '\nPlayerCashierNumber\n'
+  // csv += window.cashiers.number + 1;
 
   csv += '\n\nSession,Type,Customer/BalloonNumber,CustomerArrivalTime/BalloonSpawnTime,CustomerCashierTime/BalloonPoppedTime,CustomerServicedTime\n'
   for (i = 0; i < window.expData.blockData.length; i++) {
@@ -682,6 +685,13 @@ function update() {
     window.customers.list[i].drawCust();
     window.customers.list[i].moveCust(d);
   }
+
+
+  let fenceImg = new Image(50, 50);
+  fenceImg.src = './img/fence.png';
+  fenceImg.width = 50;
+  fenceImg.height = 50;
+  ctx.drawImage(fenceImg, -35, 0, 70, 50);
 
   // window.cQueue.drawQ();
 
@@ -954,7 +964,7 @@ function checkCQueue() {
     } else if (window.session == 4) {
       $.confirm({
         title: "Demographic Questions",
-        content: "Congratulations on completing the experiment! There are a few questions for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
+        content: "Congratulations on completing the experiment! You have successfully earned <strong>$" + window.expData.bonus + "</strong> in bonus payments. There are a few questions left for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1054,8 +1064,9 @@ function balloonPop() {
 
     document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
     document.getElementById("nextButton").onclick = function () {
-
+    window.expData.midQAttempt = 0;
       function midQ() {
+        window.expData.midQAttempt++;
         window.balloon.state = true;
         clearTimeout(window.balloon.timeout);
         let question = window.expParam.midQuestion;
