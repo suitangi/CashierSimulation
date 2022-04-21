@@ -85,7 +85,7 @@ function preQuestions(qNum) {
     window.expData.checkoutBonus = window.checkout.bonus;
     $.confirm({
       title: "Practice Session 1",
-      content: "This is a practice session. You will not be paid, but you will see the amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong> After you have completed at least " + window.expParam.practiceSession1Target +" customers, you can move on by clicking the “next” button when you feel ready for the main game.",
+      content: "This is a session to help you practice playing the game. You will not be paid, but you will see the hypothetical amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong>. After you have completed at least " + window.expParam.practiceSession1Target +" customers, you can move on by clicking the “next” button when you feel ready for the main game.",
       type: 'blue',
       boxWidth: '55%',
       useBootstrap: false,
@@ -653,7 +653,7 @@ function checkoutOnclick() {
     document.getElementById("nextButton").onclick = function () {
       $.confirm({
         title: "Main Session 1",
-        content: "This is a 2-min main session 1. You will be paid a bonus of $ <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
+        content: "This is a timed 3 minute session where you will check out customers (similar to what you practiced in the last session). You will be paid a bonus of $ <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -920,7 +920,7 @@ function checkCQueue() {
     } else if (window.session == 1) {
       $.confirm({
         title: "Practice Session 2",
-        content: "This is a practice session for the next game. You will not be paid, but you will see the amount that you would have earned. In addition to checking out customers, you have the option to play a balloon-popping game whenever you are not assigned a customer to earn extra monetary reward. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have popped at least " + window.expParam.practiceSession2Target + " balloons, you can move on by clicking the “next” button when you feel ready for the main game.",
+        content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, you now have the option to play a balloon-popping game whenever you are not assigned a customer. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have completed at least <b>" + window.expParam.practiceSession1Target +" customers </b> and popped at least <b>" + window.expParam.practiceSession2Target + " balloons</b> , you can move on by clicking the “next” button when you feel ready for the main game.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -942,7 +942,7 @@ function checkCQueue() {
     } else if (window.session == 3) {
       $.confirm({
         title: "Main Session 3",
-        content: "This is a 6-min main session. Serving customers is not rewarding. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
+        content: "This is a timed 6 minute main session where you will check out customers and pop balloons, but serving customers will not be rewarded. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1101,7 +1101,7 @@ function balloonPop() {
                     if (question.choices[j].correct) { //correcly answered
                       $.confirm({
                         title: "Main Session 2",
-                          content: "This is a 6-min main session. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
+                          content: "This is a timed 6 minute session where you will check out customers and pop balloons (similar to what you practiced in the last session). This session might be a bit more difficult than the practice session, because customers will arrive faster. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
                         type: 'blue',
                         boxWidth: '55%',
                         useBootstrap: false,
