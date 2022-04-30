@@ -22,21 +22,19 @@
     <div id="CashArea">
       <div id="sliderArea"></div>
       <button id="cartButton">Submit Cart</button>
-      <button id="nextButton">Next</button>
     </div>
+    <span id="timeLine"><strong>Time Remaining: <span id="TimeDisplay">15:00</span></strong></span>
     <div id="HUD">
       <p>
-        <span id="timeLine"><strong>Time Remaining: <span id="TimeDisplay">15:00</span></strong></span><br>
-        Customers Arrival: <span id="AveDisplay">0</span><br>
-        Bonus per customer: $<span id="bonusAmountDisplay">0</span><br>
-        <span id="bBonusLine">Bonus per 10 balloons: $<span id="bonusAmountDisplay1">0</span></span>
+        <span class="blueText">Bonus per customer: $<span id="bonusAmountDisplay">0</span></span><br>
+        <span class="greenText" id="bBonusLine">Bonus per 10 balloons: $<span id="bonusAmountDisplay1">0</span></span><br>
+        <span class="redText"><span id="sessBonusLine">Session Bonus Earned</span>: $<span id="bonusDisplay">0</span></span
       </p>
       <p id="secondColumn">
-        <span id="bLine">Balloons Popped: <span id="bDisplay">0</span><br></span>
-        Customers Serviced: <span id="pDisplay">0</span><br>
-        Session Bonus Earned: $<span id="bonusDisplay">0</span><br>
-        Total Bonus Earned: $<span id="bonusDisplay1">0</span>
+        <span class="blueText">Customers Serviced: <span id="pDisplay">0</span></span><br>
+        <span id="bLine" class="greenText">Balloons Popped: <span id="bDisplay">0</span><br></span>
       </p>
+      <button id="nextButton">Next</button>
     </div>
     <div id="BalloonContainer">
       <div id="Balloon">

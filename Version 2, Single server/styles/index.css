@@ -12,12 +12,14 @@ body {
 
 #BalloonContainer {
   position: absolute;
+  user-select: none;
 }
 
 #balloon {
   animation: balloons 4s ease-in-out infinite;
   transform-origin: bottom center;
   cursor: pointer;
+  user-select: none;
 }
 
 @keyframes balloons {
@@ -55,12 +57,32 @@ body {
   background-color: #eee;
 }
 
+#timeLine {
+  position: absolute;
+  top: 10%;
+  right: 25%;
+  transform: translate(50%, 0);
+  font-size: 25px;
+}
+
 #HUD {
   position: absolute;
   left: 50%;
-  top: 0%;
+  bottom: 10%;
   font-size: 20px;
   width: 40%;
+}
+
+#HUD .blueText {
+  color: #091799 !important;
+}
+
+#HUD .redText {
+  color: #990909 !important;
+}
+
+#HUD .greenText {
+  color: #09692c !important;
 }
 
 #CashArea {
@@ -86,6 +108,8 @@ body {
 
 #nextButton {
   border: none;
+  position: absolute;
+  right: 0;
   color: white;
   padding: 15px 32px;
   text-align: center;

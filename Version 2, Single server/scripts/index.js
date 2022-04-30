@@ -18,6 +18,16 @@ function shuffle(array) {
   }
 }
 
+//Helper: Get Query
+function getParameterByName(name, url) {
+  if (!url) url = window.location.href;
+  name = name.replace(/[\[\]]/g, '\\$&');
+  var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+    results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
 
 //random from list
 function random(list) {
@@ -90,6 +100,7 @@ function preQuestions(qNum) {
       boxWidth: '55%',
       useBootstrap: false,
       typeAnimated: true,
+      autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
       buttons: {
         close: {
           text: "Continue",
@@ -331,7 +342,7 @@ function postQuestions(qNum) {
               return false;
             } else if (question.type == 'number') {
               var textAns = this.$content.find('#ageInput').val();
-              if (!textAns) {
+              if (!textAns || parseInt(textAns) < question.min || parseInt(textAns) > question.max) {
                 $.alert({
                   title: 'Error',
                   boxWidth: '25%',
@@ -390,7 +401,13 @@ function postQuestions(qNum) {
 }
 
 function dataToCSV() {
+
   let i, j, tmp;
+
+  //sort time series data
+  for (i = 0; i < window.expData.timeSeriesData.length; i++)
+  window.expData.timeSeriesData[i].sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 : ((b.timestamp > a.timestamp) ? -1 : 0);} );
+
   var csv = "";
   csv += 'Bonus,' + window.expData.bonus + '\n'
   csv += '\nPrequestion,Answer\n'
@@ -432,6 +449,14 @@ function dataToCSV() {
         csv += tmp.number + ',' + tmp.spawn + ',' + tmp.popped + '\n';
       else if (tmp.type == 'customer')
         csv += tmp.number + ',' + tmp.arrival + ',' + tmp.cashier + ',' + tmp.serviced + '\n';
+    }
+  }
+
+  csv += '\n\nSession,Timestamp,Event,QueueLength\n';
+  for (i = 0; i < window.expData.timeSeriesData.length; i++) {
+    for (j = 0; j < window.expData.timeSeriesData[i].length; j++) {
+      tmp = window.expData.timeSeriesData[i][j];
+      csv += i + ',' + tmp.timestamp + ',' + tmp.event + ',' + tmp.qLength + '\n';
     }
   }
 
@@ -593,6 +618,7 @@ function loadCheckout() {
 
   for (var i = 0; i < li.length; i++) {
     document.getElementById('myRange' + i).value = 0;
+    document.getElementById('myRange' + i).removeAttribute('disabled');
     document.getElementById('myRangeLabel' + i).innerText = '$0.00'
     window.checkout.entered[i] = 0;
     txt = "$" + window.checkout.items[i].price;
@@ -633,15 +659,22 @@ function checkoutOnclick() {
   let dlist = window.expData.blockData[window.expData.blockData.length - 1];
   dlist[dlist.length - 1].serviced = d - window.checkout.startTime;
 
+  window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
+    timestamp: d - window.checkout.startTime,
+    event: 'Customer ' + (window.checkout.amount - 1) + ' departure',
+    qLength: window.customerQueue
+  });
+
   document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
   document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
-  if (window.session != 0 && window.session != 2)
-    document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  // if (window.session != 0 && window.session != 2)
+  //   document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
   removeCust(window.cashiers.number);
   window.cashiers.avail.push(window.cashiers.number);
   let li = document.getElementById('sliderArea').children;
   for (var i = 0; i < li.length; i++) {
     document.getElementById('myRange' + i).value = 0;
+    document.getElementById('myRange' + i).setAttribute('disabled', true);
     document.getElementById('myRangeLabel' + i).innerText = '$0.00';
     li[i].children[0].innerText = "No Item: $0.00";
   }
@@ -651,28 +684,36 @@ function checkoutOnclick() {
   if (window.session == 0 && window.checkout.amount == window.expParam.practiceSession1Target) {
     document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
     document.getElementById("nextButton").onclick = function () {
-      $.confirm({
-        title: "Main Session 1",
-        content: "This is a timed 3 minute session where you will check out customers (similar to what you practiced in the last session). You will be paid a bonus of $ <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
-        type: 'blue',
-        boxWidth: '55%',
-        useBootstrap: false,
-        typeAnimated: true,
-        buttons: {
-          close: {
-            text: "Continue",
-            btnClass: 'btn-blue',
-            action: function() {
-              window.session++;
-              document.getElementById("nextButton").style = "display: none;"
-              document.getElementById("nextButton").onclick = function () {};
-              startTrial();
-            }
-          }
-        }
-      });
+      practice1Done();
     }
   }
+}
+
+
+//handler for practice session 1 done
+function practice1Done(){
+  window.checkout.clickDone = true;
+  document.getElementById('StimArea').setAttribute('hidden', true);
+  $.confirm({
+    title: "Main Session 1",
+    content: "This is a timed 3 minute session where you will check out customers (similar to what you practiced in the last session). You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong>  per customer served.",
+    type: 'blue',
+    boxWidth: '55%',
+    useBootstrap: false,
+    typeAnimated: true,
+    buttons: {
+      close: {
+        text: "Continue",
+        btnClass: 'btn-blue',
+        action: function() {
+          window.session++;
+          document.getElementById("nextButton").style = "display: none;"
+          document.getElementById("nextButton").onclick = function () {};
+          startTrial();
+        }
+      }
+    }
+  });
 }
 
 //updates each step of the animations
@@ -680,6 +721,7 @@ function update() {
   var canvas = document.getElementById('canvas');
   var ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(window.fenceImg, -35, 0, 70, 50);
   var d = new Date();
   for (var i = 0; i < window.customers.list.length; i++) {
     window.customers.list[i].drawCust();
@@ -687,11 +729,6 @@ function update() {
   }
 
 
-  let fenceImg = new Image(50, 50);
-  fenceImg.src = './img/fence.png';
-  fenceImg.width = 50;
-  fenceImg.height = 50;
-  ctx.drawImage(fenceImg, -35, 0, 70, 50);
 
   // window.cQueue.drawQ();
 
@@ -713,7 +750,9 @@ function startTrial() {
   let html = '';
   let v;
 
-  if (window.session == 0) {
+  document.getElementById('StimArea').removeAttribute('hidden');
+
+  if (window.session == 0) { //practice session 1
 
 
     window.cashiers = {};
@@ -725,6 +764,12 @@ function startTrial() {
     window.cashiers.number = 0;
     window.customers.ArrivalRate = window.expParam.practiceArrivalRate;
     window.checkout.practiceAmount = 0;
+
+    //Setup fence img
+    window.fenceImg = new Image(50, 50);
+    window.fenceImg.src = './img/fence.png';
+    window.fenceImg.width = 50;
+    window.fenceImg.height = 50;
 
     //bonus randomization
     window.balloon.bonus = window.checkout.bonus;
@@ -739,7 +784,12 @@ function startTrial() {
 
     document.getElementById('pDisplay').innerText = '0/3';
 
-  } else if (window.session == 1) {
+    //setup timing
+    window.checkout.time = window.expParam.practiceSession1Time * 60000;
+    window.checkout.timeTotal = window.expParam.practiceSession1Time;
+    window.checkout.clickDone = false;
+
+  } else if (window.session == 1) { //main session 1
 
     //unhide some displays
     document.getElementById('timeLine').hidden = false;
@@ -752,11 +802,13 @@ function startTrial() {
     window.customers.ArrivalRate = random(window.expParam.customerArrivalRates);
     window.expData.arrivalRate = window.customers.ArrivalRate;
 
+    window.customers.ArrivalRate = window.expParam.mainSession1ArrivalRate;
+
     document.getElementById('pDisplay').innerText = '0';
 
-  } else if (window.session == 2) {
+  } else if (window.session == 2) {  //practice session 1
 
-    window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;;
+    window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;
 
     //unhide ballon displays
     document.getElementById('bBonusLine').hidden = false;
@@ -770,9 +822,14 @@ function startTrial() {
     //unhide next button
     document.getElementById("nextButton").style = "";
 
+    //setup timing
+    window.checkout.time = window.expParam.practiceSession2Time * 60000;
+    window.checkout.timeTotal = window.expParam.practiceSession2Time;
+    window.checkout.clickDone = false;
+
     document.getElementById('pDisplay').innerText = '0';
 
-  } else if (window.session == 3) {
+  } else if (window.session == 3) { //main session 2
 
     window.customers.ArrivalRate = window.expData.arrivalRate;
 
@@ -785,7 +842,8 @@ function startTrial() {
 
     document.getElementById('bDisplay').innerText = '0';
     document.getElementById('pDisplay').innerText = '0';
-  } else if (window.session == 4) {
+
+  } else if (window.session == 4) { //main session 3
 
     window.customers.ArrivalRate = window.expData.arrivalRate;
 
@@ -813,6 +871,8 @@ function startTrial() {
   window.checkout.startTime = new Date();
   window.checkout.amount = 0;
   window.checkout.ave = 0;
+  window.checkout.timeSeriesCnumber = 0;
+  window.expData.timeSeriesData.push([]);
 
   //session starts with a customer to prevent ballon immediately spawning
   if (window.session == 2)
@@ -833,10 +893,10 @@ function startTrial() {
 
   document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
   document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
-  document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  // document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
 
   for (var i = 0; i < window.expParam.items; i++) {
-    html += '<div class="sliderContainer"><span class="sliderLabel">No Item ' + (i + 1) + ': $0.00</span><strong><span class="rangeLabel" id="myRangeLabel' + i + '">$0.00</span></strong> <input type="range" min="0" max="8" value="0" step="0.05" data-id=' + i + ' class="slider" id="myRange' + i + '"></div>'
+    html += '<div class="sliderContainer"><span class="sliderLabel">No Item ' + (i + 1) + ': $0.00</span><strong><span class="rangeLabel" id="myRangeLabel' + i + '">$0.00</span></strong> <input disabled type="range" min="0" max="8" value="0" step="0.05" data-id=' + i + ' class="slider" id="myRange' + i + '"></div>'
     window.checkout.entered.push(0);
   }
   document.getElementById("sliderArea").innerHTML = html;
@@ -879,7 +939,7 @@ function startTrial() {
   //   window.cQueue = new cQueue();
 
   window.checkout.ave = roundBetter(window.customers.ArrivalRate * 60, 2);
-  document.getElementById('AveDisplay').innerText = window.checkout.ave + " / min.";
+  // document.getElementById('AveDisplay').innerText = window.checkout.ave + " / min.";
 
   update();
 
@@ -893,12 +953,22 @@ function startTrial() {
 
       let d = new Date();
       window.customers.arrivalTime.push(d - window.checkout.startTime);
+
+      //push time series data
+      window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
+        timestamp: d - window.checkout.startTime,
+        event: 'Customer ' + window.checkout.timeSeriesCnumber + ' arrival',
+        qLength: window.customerQueue - (window.cashiers.avail.indexOf(window.cashiers.number) != -1? 1: 0)
+      });
+
+      window.checkout.timeSeriesCnumber ++;
+
       addCustomersToQ();
     }, randomExponential(window.customers.ArrivalRate) * 1000);
   }
   addCustomersToQ();
   if (window.session == 0 || window.session == 2 || window.session == 4)
-    checkCQueue();
+  checkCQueue();
 }
 
 function checkCQueue() {
@@ -916,8 +986,17 @@ function checkCQueue() {
 
   //time ended
   if (window.checkout.time <= 0) {
-    if (window.session == 0 || window.session == 2) {
+    if (window.session == 0) {
+      if (!window.checkout.clickDone) {
+        practice1Done();
+      }
+    } else if (window.session == 2) {
+      if (!window.checkout.clickDone) {
+        practice2Done();
+      }
     } else if (window.session == 1) {
+      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Practice Session 2",
         content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, you now have the option to play a balloon-popping game whenever you are not assigned a customer. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have completed at least <b>" + window.expParam.practiceSession1Target +" customers </b> and popped at least <b>" + window.expParam.practiceSession2Target + " balloons</b> , you can move on by clicking the “next” button when you feel ready for the main game.",
@@ -930,7 +1009,6 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
-              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
               window.session++;
               startTrial();
               //postQuestions(0);
@@ -940,9 +1018,11 @@ function checkCQueue() {
       });
       return;
     } else if (window.session == 3) {
+      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
-        title: "Main Session 3",
-        content: "This is a timed 6 minute main session where you will check out customers and pop balloons, but serving customers will not be rewarded. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
+        title: "Cumulative Bonus",
+        content: "Your cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -952,16 +1032,34 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
-              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
-              window.session++;
-              startTrial();
-              //postQuestions(0);
+              $.confirm({
+                title: "Main Session 3",
+                content: "This is a timed 6 minute main session where you will check out customers and pop balloons, but serving customers will not be rewarded. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
+                type: 'blue',
+                boxWidth: '55%',
+                useBootstrap: false,
+                typeAnimated: true,
+                buttons: {
+                  close: {
+                    text: "Continue",
+                    btnClass: 'btn-blue',
+                    action: function() {
+                      window.session++;
+                      startTrial();
+                      //postQuestions(0);
+                    }
+                  }
+                }
+              });
             }
           }
         }
       });
+
       return;
     } else if (window.session == 4) {
+      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Demographic Questions",
         content: "Congratulations on completing the experiment! You have successfully earned <strong>$" + window.expData.bonus + "</strong> in bonus payments. There are a few questions left for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
@@ -974,7 +1072,6 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
-              window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
               postQuestions(0);
             }
           }
@@ -1049,8 +1146,8 @@ function balloonPop() {
 
   //display scores
   document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
-  if (window.session != 2)
-    document.getElementById('bonusDisplay1').innerText = window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+  // if (window.session != 2)
+  //   document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
   document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2? ('/' + window.expParam.practiceSession2Target): '');
 
   //recored popped time
@@ -1063,114 +1160,121 @@ function balloonPop() {
   if (window.session == 2 && window.balloon.score == window.expParam.practiceSession2Target) {
 
     document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
-    document.getElementById("nextButton").onclick = function () {
-    window.expData.midQAttempt = 0;
-      function midQ() {
-        window.expData.midQAttempt++;
-        window.balloon.state = true;
-        clearTimeout(window.balloon.timeout);
-        let question = window.expParam.midQuestion;
-        let html = question.question + '<br>';
-        shuffle(question.choices);
-        for (var i = 0; i < question.choices.length; i++) {
-          html += '<label class="radioContainer">' +
-            question.choices[i].text +
-            '<input type="radio" name="radio"> <span class="checkmark"></span> </label>'
-        }
-        $.confirm({
-          title: question.title,
-          content: html,
-          type: 'blue',
-          boxWidth: '55%',
-          useBootstrap: false,
-          typeAnimated: true,
-          buttons: {
-            formSubmit: {
-              text: 'Next',
-              btnClass: 'btn-blue',
-              action: function() {
-                var radioList = this.$content.find($('.radioContainer'));
-                for (var j = 0; j < radioList.length; j++) {
-                  if (radioList[j].getElementsByTagName('input')[0].checked) {
-
-                    //push answer
-                    window.expData.preQuestions.push({
-                      question: question.title,
-                      answer: question.choices[j]
-                    });
-                    if (question.choices[j].correct) { //correcly answered
-                      $.confirm({
-                        title: "Main Session 2",
-                          content: "This is a timed 6 minute session where you will check out customers and pop balloons (similar to what you practiced in the last session). This session might be a bit more difficult than the practice session, because customers will arrive faster. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
-                        type: 'blue',
-                        boxWidth: '55%',
-                        useBootstrap: false,
-                        typeAnimated: true,
-                        buttons: {
-                          close: {
-                            text: "Continue",
-                            btnClass: 'btn-blue',
-                            action: function() {
-                              window.session++;
-                              document.getElementById("nextButton").style = "display: none;"
-                              document.getElementById('BalloonContainer').style = "display: none;";
-                              document.getElementById("nextButton").onclick = function () {};
-                              startTrial();
-                            }
-                          }
-                        }
-                      });
-                      return true;
-                    } else { //incorrect answer
-                      $.confirm({
-                        title: "Incorrect",
-                        content: "Wrong! The tip is: Working faster allows more time to pop balloons, and, therefore, the potential to earn more bonus. Try again!",
-                        type: 'red',
-                        boxWidth: '55%',
-                        useBootstrap: false,
-                        typeAnimated: true,
-                        buttons: {
-                          close: {
-                            text: "Try Again",
-                            btnClass: 'btn-red',
-                            action: function() {
-                              midQ();
-                            }
-                          }
-                        },
-                      });
-                      return true;
-                    }
-                  }
-                }
-                $.alert({
-                  title: 'Error',
-                  boxWidth: '25%',
-                  useBootstrap: false,
-                  content: 'Please select an answer',
-                  type: 'red',
-                });
-                return false;
-              }
-            }
-          },
-          onContentReady: function() {
-            var jc = this;
-            this.$content.find('form').on('submit', function(e) {
-              e.preventDefault();
-              jc.$$formSubmit.trigger('click');
-            });
-          },
-          onOpenBefore: function() {
-            if (question.type == 'specialKey') {
-              this.buttons.formSubmit.hide();
-            }
-          }
-        });
-      }
-      midQ();
+    document.getElementById("nextButton").onclick = function() {
+      practice2Done();
     }
   }
+}
+
+//handler for practice session 2 being done
+function practice2Done() {
+  window.checkout.clickDone = true;
+  window.expData.midQAttempt = 0;
+  document.getElementById('StimArea').setAttribute('hidden', true);
+    function midQ() {
+      window.expData.midQAttempt++;
+      window.balloon.state = true;
+      clearTimeout(window.balloon.timeout);
+      let question = window.expParam.midQuestion;
+      let html = question.question + '<br>';
+      shuffle(question.choices);
+      for (var i = 0; i < question.choices.length; i++) {
+        html += '<label class="radioContainer">' +
+          question.choices[i].text +
+          '<input type="radio" name="radio"> <span class="checkmark"></span> </label>'
+      }
+      $.confirm({
+        title: question.title,
+        content: html,
+        type: 'blue',
+        boxWidth: '55%',
+        useBootstrap: false,
+        typeAnimated: true,
+        buttons: {
+          formSubmit: {
+            text: 'Next',
+            btnClass: 'btn-blue',
+            action: function() {
+              var radioList = this.$content.find($('.radioContainer'));
+              for (var j = 0; j < radioList.length; j++) {
+                if (radioList[j].getElementsByTagName('input')[0].checked) {
+
+                  //push answer
+                  window.expData.preQuestions.push({
+                    question: question.title,
+                    answer: question.choices[j]
+                  });
+                  if (question.choices[j].correct) { //correcly answered
+                    $.confirm({
+                      title: "Main Session 2",
+                        content: "This is a timed 6 minute session where you will check out customers and pop balloons (similar to what you practiced in the last session). This session might be a bit more difficult than the practice session, because customers will arrive faster. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
+                      type: 'blue',
+                      boxWidth: '55%',
+                      useBootstrap: false,
+                      typeAnimated: true,
+                      buttons: {
+                        close: {
+                          text: "Continue",
+                          btnClass: 'btn-blue',
+                          action: function() {
+                            window.session++;
+                            document.getElementById("nextButton").style = "display: none;"
+                            document.getElementById('BalloonContainer').style = "display: none;";
+                            document.getElementById("nextButton").onclick = function () {};
+                            startTrial();
+                          }
+                        }
+                      }
+                    });
+                    return true;
+                  } else { //incorrect answer
+                    $.confirm({
+                      title: "Incorrect",
+                      content: "Wrong! The tip is: Working faster allows more time to pop balloons, and, therefore, the potential to earn more bonus. Try again!",
+                      type: 'red',
+                      boxWidth: '55%',
+                      useBootstrap: false,
+                      typeAnimated: true,
+                      buttons: {
+                        close: {
+                          text: "Try Again",
+                          btnClass: 'btn-red',
+                          action: function() {
+                            midQ();
+                          }
+                        }
+                      },
+                    });
+                    return true;
+                  }
+                }
+              }
+              $.alert({
+                title: 'Error',
+                boxWidth: '25%',
+                useBootstrap: false,
+                content: 'Please select an answer',
+                type: 'red',
+              });
+              return false;
+            }
+          }
+        },
+        onContentReady: function() {
+          var jc = this;
+          this.$content.find('form').on('submit', function(e) {
+            e.preventDefault();
+            jc.$$formSubmit.trigger('click');
+          });
+        },
+        onOpenBefore: function() {
+          if (question.type == 'specialKey') {
+            this.buttons.formSubmit.hide();
+          }
+        }
+      });
+    }
+    midQ();
 }
 
 //function to start experiment
@@ -1215,6 +1319,7 @@ $(document).ready(function() {
     window.expData.preQuestions = [];
     window.expData.postQuestions = [];
     window.expData.blockData = [];
+    window.expData.timeSeriesData = [];
     window.expData.bonus = 0;
     window.fps = {};
     window.session = 0;

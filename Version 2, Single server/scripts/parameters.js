@@ -11,10 +11,15 @@ window.expParam = {
   practiceArrivalRate: 1, //per second
   practiceCashierNumber: 0,
 
+  popupAutocloseTime: 2, //minutes
+
   practiceSession1Target: 3, //target number of customer checkouts
+  practiceSession1Time: 6,
+  mainSession1ArrivalRate: 1/60,
   mainSession1Time: 3, //minutes
   practiceSession2Target: 10, //target number of balloons
-  practiceSession2ArrivalRate: 1/60, //customer per second
+  practiceSession2ArrivalRate: 1/60, //customer per secon
+  practiceSession2Time: 6,
   mainSession2Time: 6, //minutes
   mainSession3Time: 6, //minutes
   mainSession3CheckoutP: 0, //checkout bonus for main session 3
