@@ -1,12 +1,19 @@
-
 //Helper function for testing
 function cheat() {
-    for (var i = 0; i < window.expParam.items; i++) {
-  document.getElementById('myRange' + i).value = window.checkout.items[i].price;
-  window.checkout.entered[i] = window.checkout.items[i].price;
+  for (var i = 0; i < window.expParam.items; i++) {
+    document.getElementById('myRange' + i).value = window.checkout.items[i].price;
+    window.checkout.entered[i] = window.checkout.items[i].price;
+  }
+  checkCheckout();
 }
-checkCheckout();
-}
+
+const beforeUnloadListener = (event) => {
+  let str = "Warning message: You will not be able to continue the experiment if you leave, and will not earn any compensation. Are you sure you want to exit?";
+  event.preventDefault();
+
+  return event.returnValue = str;
+};
+
 
 //Helper: shuffle an array
 function shuffle(array) {
@@ -95,7 +102,7 @@ function preQuestions(qNum) {
     window.expData.checkoutBonus = window.checkout.bonus;
     $.confirm({
       title: "Practice Session 1",
-      content: "This is a session to help you practice playing the game. You will not be paid, but you will see the hypothetical amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong>. After you have completed at least " + window.expParam.practiceSession1Target +" customers, you can move on by clicking the “next” button when you feel ready for the main game.",
+      content: "This is a session to help you practice playing the game. You will not be paid, but you will see the hypothetical amount that you would have earned. The bonus of serving one customer is $<strong>" + window.checkout.bonus + "</strong>. After you have completed at least " + window.expParam.practiceSession1Target + " customers, you can move on by clicking the “next” button when you feel ready for the main game.",
       type: 'blue',
       boxWidth: '55%',
       useBootstrap: false,
@@ -142,13 +149,14 @@ function preQuestions(qNum) {
       keys = ['p', 'q'];
       html = question.question;
     }
-    $.confirm({
+    window.preModal = $.confirm({
       title: question.title,
       content: html,
       type: 'blue',
       boxWidth: '55%',
       useBootstrap: false,
       typeAnimated: true,
+      animation: 'opacity',
       buttons: {
         formSubmit: {
           text: 'Next',
@@ -406,7 +414,9 @@ function dataToCSV() {
 
   //sort time series data
   for (i = 0; i < window.expData.timeSeriesData.length; i++)
-  window.expData.timeSeriesData[i].sort(function(a,b) {return (a.timestamp > b.timestamp) ? 1 : ((b.timestamp > a.timestamp) ? -1 : 0);} );
+    window.expData.timeSeriesData[i].sort(function(a, b) {
+      return (a.timestamp > b.timestamp) ? 1 : ((b.timestamp > a.timestamp) ? -1 : 0);
+    });
 
   var csv = "";
   csv += 'Bonus,' + window.expData.bonus + '\n'
@@ -665,8 +675,8 @@ function checkoutOnclick() {
     qLength: window.customerQueue
   });
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
-  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0 ? ('/' + window.expParam.practiceSession1Target) : '');
+  document.getElementById('bonusDisplay').innerText = roundBetter(window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus), 3);
   // if (window.session != 0 && window.session != 2)
   //   document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
   removeCust(window.cashiers.number);
@@ -683,7 +693,7 @@ function checkoutOnclick() {
 
   if (window.session == 0 && window.checkout.amount == window.expParam.practiceSession1Target) {
     document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
-    document.getElementById("nextButton").onclick = function () {
+    document.getElementById("nextButton").onclick = function() {
       practice1Done();
     }
   }
@@ -691,7 +701,7 @@ function checkoutOnclick() {
 
 
 //handler for practice session 1 done
-function practice1Done(){
+function practice1Done() {
   window.checkout.clickDone = true;
   document.getElementById('StimArea').setAttribute('hidden', true);
   $.confirm({
@@ -700,6 +710,7 @@ function practice1Done(){
     type: 'blue',
     boxWidth: '55%',
     useBootstrap: false,
+    autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
     typeAnimated: true,
     buttons: {
       close: {
@@ -708,7 +719,7 @@ function practice1Done(){
         action: function() {
           window.session++;
           document.getElementById("nextButton").style = "display: none;"
-          document.getElementById("nextButton").onclick = function () {};
+          document.getElementById("nextButton").onclick = function() {};
           startTrial();
         }
       }
@@ -806,7 +817,7 @@ function startTrial() {
 
     document.getElementById('pDisplay').innerText = '0';
 
-  } else if (window.session == 2) {  //practice session 1
+  } else if (window.session == 2) { //practice session 1
 
     window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;
 
@@ -891,8 +902,8 @@ function startTrial() {
   canvas.height = 54 * window.cashiers.amount;
   canvas.width = window.expParam.customerWalkAreaWidth;
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0? ('/' + window.expParam.practiceSession1Target): '');
-  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0 ? ('/' + window.expParam.practiceSession1Target) : '');
+  document.getElementById('bonusDisplay').innerText = roundBetter(window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus), 3);
   // document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
 
   for (var i = 0; i < window.expParam.items; i++) {
@@ -958,17 +969,17 @@ function startTrial() {
       window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
         timestamp: d - window.checkout.startTime,
         event: 'Customer ' + window.checkout.timeSeriesCnumber + ' arrival',
-        qLength: window.customerQueue - (window.cashiers.avail.indexOf(window.cashiers.number) != -1? 1: 0)
+        qLength: window.customerQueue - (window.cashiers.avail.indexOf(window.cashiers.number) != -1 ? 1 : 0)
       });
 
-      window.checkout.timeSeriesCnumber ++;
+      window.checkout.timeSeriesCnumber++;
 
       addCustomersToQ();
     }, randomExponential(window.customers.ArrivalRate) * 1000);
   }
   addCustomersToQ();
   if (window.session == 0 || window.session == 2 || window.session == 4)
-  checkCQueue();
+    checkCQueue();
 }
 
 function checkCQueue() {
@@ -995,30 +1006,7 @@ function checkCQueue() {
         practice2Done();
       }
     } else if (window.session == 1) {
-      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
-      document.getElementById('StimArea').setAttribute('hidden', true);
-      $.confirm({
-        title: "Practice Session 2",
-        content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, you now have the option to play a balloon-popping game whenever you are not assigned a customer. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have completed at least <b>" + window.expParam.practiceSession1Target +" customers </b> and popped at least <b>" + window.expParam.practiceSession2Target + " balloons</b> , you can move on by clicking the “next” button when you feel ready for the main game.",
-        type: 'blue',
-        boxWidth: '55%',
-        useBootstrap: false,
-        typeAnimated: true,
-        buttons: {
-          close: {
-            text: "Continue",
-            btnClass: 'btn-blue',
-            action: function() {
-              window.session++;
-              startTrial();
-              //postQuestions(0);
-            }
-          }
-        }
-      });
-      return;
-    } else if (window.session == 3) {
-      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Cumulative Bonus",
@@ -1026,6 +1014,47 @@ function checkCQueue() {
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
+        autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
+        typeAnimated: true,
+        buttons: {
+          close: {
+            text: "Continue",
+            btnClass: 'btn-blue',
+            action: function() {
+              $.confirm({
+                title: "Practice Session 2",
+                content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, you now have the option to play a balloon-popping game whenever you are not assigned a customer. The bonus of clicking on (i.e., bursting) 10 balloons is $<strong>" + window.checkout.bonus + "</strong>. Once a new customer is assigned to you, the balloon-popping game will stop. After you have completed at least <b>" + window.expParam.practiceSession1Target + " customers </b> and popped at least <b>" + window.expParam.practiceSession2Target + " balloons</b> , you can move on by clicking the “next” button when you feel ready for the main game.",
+                type: 'blue',
+                boxWidth: '55%',
+                useBootstrap: false,
+                typeAnimated: true,
+                buttons: {
+                  close: {
+                    text: "Continue",
+                    btnClass: 'btn-blue',
+                    action: function() {
+                      window.session++;
+                      startTrial();
+                      //postQuestions(0);
+                    }
+                  }
+                }
+              });
+            }
+          }
+        }
+      });
+      return;
+    } else if (window.session == 3) {
+      window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      document.getElementById('StimArea').setAttribute('hidden', true);
+      $.confirm({
+        title: "Cumulative Bonus",
+        content: "Your cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        type: 'blue',
+        boxWidth: '55%',
+        useBootstrap: false,
+        autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
         typeAnimated: true,
         buttons: {
           close: {
@@ -1058,7 +1087,7 @@ function checkCQueue() {
 
       return;
     } else if (window.session == 4) {
-      window.expData.bonus += (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Demographic Questions",
@@ -1145,10 +1174,10 @@ function balloonPop() {
   window.balloon.score += 1;
 
   //display scores
-  document.getElementById('bonusDisplay').innerText = roundBetter((Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
+  document.getElementById('bonusDisplay').innerText = roundBetter((window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 3);
   // if (window.session != 2)
   //   document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
-  document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2? ('/' + window.expParam.practiceSession2Target): '');
+  document.getElementById('bDisplay').innerText = window.balloon.score + (window.session == 2 ? ('/' + window.expParam.practiceSession2Target) : '');
 
   //recored popped time
   let d = new Date();
@@ -1171,110 +1200,112 @@ function practice2Done() {
   window.checkout.clickDone = true;
   window.expData.midQAttempt = 0;
   document.getElementById('StimArea').setAttribute('hidden', true);
-    function midQ() {
-      window.expData.midQAttempt++;
-      window.balloon.state = true;
-      clearTimeout(window.balloon.timeout);
-      let question = window.expParam.midQuestion;
-      let html = question.question + '<br>';
-      shuffle(question.choices);
-      for (var i = 0; i < question.choices.length; i++) {
-        html += '<label class="radioContainer">' +
-          question.choices[i].text +
-          '<input type="radio" name="radio"> <span class="checkmark"></span> </label>'
-      }
-      $.confirm({
-        title: question.title,
-        content: html,
-        type: 'blue',
-        boxWidth: '55%',
-        useBootstrap: false,
-        typeAnimated: true,
-        buttons: {
-          formSubmit: {
-            text: 'Next',
-            btnClass: 'btn-blue',
-            action: function() {
-              var radioList = this.$content.find($('.radioContainer'));
-              for (var j = 0; j < radioList.length; j++) {
-                if (radioList[j].getElementsByTagName('input')[0].checked) {
 
-                  //push answer
-                  window.expData.preQuestions.push({
-                    question: question.title,
-                    answer: question.choices[j]
-                  });
-                  if (question.choices[j].correct) { //correcly answered
-                    $.confirm({
-                      title: "Main Session 2",
-                        content: "This is a timed 6 minute session where you will check out customers and pop balloons (similar to what you practiced in the last session). This session might be a bit more difficult than the practice session, because customers will arrive faster. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
-                      type: 'blue',
-                      boxWidth: '55%',
-                      useBootstrap: false,
-                      typeAnimated: true,
-                      buttons: {
-                        close: {
-                          text: "Continue",
-                          btnClass: 'btn-blue',
-                          action: function() {
-                            window.session++;
-                            document.getElementById("nextButton").style = "display: none;"
-                            document.getElementById('BalloonContainer').style = "display: none;";
-                            document.getElementById("nextButton").onclick = function () {};
-                            startTrial();
-                          }
+  function midQ() {
+    window.expData.midQAttempt++;
+    window.balloon.state = true;
+    clearTimeout(window.balloon.timeout);
+    let question = window.expParam.midQuestion;
+    let html = question.question + '<br>';
+    shuffle(question.choices);
+    for (var i = 0; i < question.choices.length; i++) {
+      html += '<label class="radioContainer">' +
+        question.choices[i].text +
+        '<input type="radio" name="radio"> <span class="checkmark"></span> </label>'
+    }
+    $.confirm({
+      title: question.title,
+      content: html,
+      type: 'blue',
+      boxWidth: '55%',
+      useBootstrap: false,
+      typeAnimated: true,
+      buttons: {
+        formSubmit: {
+          text: 'Next',
+          btnClass: 'btn-blue',
+          action: function() {
+            var radioList = this.$content.find($('.radioContainer'));
+            for (var j = 0; j < radioList.length; j++) {
+              if (radioList[j].getElementsByTagName('input')[0].checked) {
+
+                //push answer
+                window.expData.preQuestions.push({
+                  question: question.title,
+                  answer: question.choices[j]
+                });
+                if (question.choices[j].correct) { //correcly answered
+                  $.confirm({
+                    title: "Main Session 2",
+                    content: "This is a timed 6 minute session where you will check out customers and pop balloons (similar to what you practiced in the last session). This session might be a bit more difficult than the practice session, because customers will arrive faster. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + window.balloon.bonus + "</strong> per 10 balloons popped.",
+                    type: 'blue',
+                    boxWidth: '55%',
+                    autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
+                    useBootstrap: false,
+                    typeAnimated: true,
+                    buttons: {
+                      close: {
+                        text: "Continue",
+                        btnClass: 'btn-blue',
+                        action: function() {
+                          window.session++;
+                          document.getElementById("nextButton").style = "display: none;"
+                          document.getElementById('BalloonContainer').style = "display: none;";
+                          document.getElementById("nextButton").onclick = function() {};
+                          startTrial();
                         }
                       }
-                    });
-                    return true;
-                  } else { //incorrect answer
-                    $.confirm({
-                      title: "Incorrect",
-                      content: "Wrong! The tip is: Working faster allows more time to pop balloons, and, therefore, the potential to earn more bonus. Try again!",
-                      type: 'red',
-                      boxWidth: '55%',
-                      useBootstrap: false,
-                      typeAnimated: true,
-                      buttons: {
-                        close: {
-                          text: "Try Again",
-                          btnClass: 'btn-red',
-                          action: function() {
-                            midQ();
-                          }
+                    }
+                  });
+                  return true;
+                } else { //incorrect answer
+                  $.confirm({
+                    title: "Incorrect",
+                    content: "Wrong! The tip is: Working faster allows more time to pop balloons, and, therefore, the potential to earn more bonus. Try again!",
+                    type: 'red',
+                    boxWidth: '55%',
+                    useBootstrap: false,
+                    typeAnimated: true,
+                    buttons: {
+                      close: {
+                        text: "Try Again",
+                        btnClass: 'btn-red',
+                        action: function() {
+                          midQ();
                         }
-                      },
-                    });
-                    return true;
-                  }
+                      }
+                    },
+                  });
+                  return true;
                 }
               }
-              $.alert({
-                title: 'Error',
-                boxWidth: '25%',
-                useBootstrap: false,
-                content: 'Please select an answer',
-                type: 'red',
-              });
-              return false;
             }
-          }
-        },
-        onContentReady: function() {
-          var jc = this;
-          this.$content.find('form').on('submit', function(e) {
-            e.preventDefault();
-            jc.$$formSubmit.trigger('click');
-          });
-        },
-        onOpenBefore: function() {
-          if (question.type == 'specialKey') {
-            this.buttons.formSubmit.hide();
+            $.alert({
+              title: 'Error',
+              boxWidth: '25%',
+              useBootstrap: false,
+              content: 'Please select an answer',
+              type: 'red',
+            });
+            return false;
           }
         }
-      });
-    }
-    midQ();
+      },
+      onContentReady: function() {
+        var jc = this;
+        this.$content.find('form').on('submit', function(e) {
+          e.preventDefault();
+          jc.$$formSubmit.trigger('click');
+        });
+      },
+      onOpenBefore: function() {
+        if (question.type == 'specialKey') {
+          this.buttons.formSubmit.hide();
+        }
+      }
+    });
+  }
+  midQ();
 }
 
 //function to start experiment
@@ -1313,6 +1344,39 @@ $(document).ready(function() {
       },
     });
   } else { //not mobile
+
+    addEventListener("beforeunload", beforeUnloadListener, {
+      capture: true
+    });
+
+    if (Cookies.get('expCookie') == null) {
+      Cookies.set('expCookie', JSON.stringify(window.game), {
+        expires: 365
+      });
+    } else {
+      $.confirm({
+        title: "Error",
+        content: "You have completed part or all of this experiment before already, you may not attempt it again.",
+        type: 'red',
+        boxWidth: '55%',
+        useBootstrap: false,
+        typeAnimated: true,
+        buttons: {
+          close: {
+            text: "Close",
+            btnClass: 'btn-blue',
+            action: function() {
+              return false;
+            }
+          }
+        },
+        onOpenBefore: function() {
+          // before the modal is displayed.
+          this.buttons.close.hide();
+        },
+      });
+      return;
+    }
 
     //set up data collection object
     window.expData = {};
