@@ -113,6 +113,9 @@ function preQuestions(qNum) {
           text: "Continue",
           btnClass: 'btn-blue',
           action: function() {
+            Cookies.set('expCookie', JSON.stringify(window.game), {
+              expires: 365
+            });
             startExp();
           }
         }
@@ -1027,6 +1030,7 @@ function checkCQueue() {
                 type: 'blue',
                 boxWidth: '55%',
                 useBootstrap: false,
+                autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
                 typeAnimated: true,
                 buttons: {
                   close: {
@@ -1066,6 +1070,7 @@ function checkCQueue() {
                 content: "This is a timed 6 minute main session where you will check out customers and pop balloons, but serving customers will not be rewarded. You will be paid a bonus of $<strong>" + window.checkout.bonus + "</strong> per 10 balloons popped.",
                 type: 'blue',
                 boxWidth: '55%',
+                autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
                 useBootstrap: false,
                 typeAnimated: true,
                 buttons: {
@@ -1088,6 +1093,7 @@ function checkCQueue() {
       return;
     } else if (window.session == 4) {
       window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Demographic Questions",
@@ -1230,10 +1236,10 @@ function practice2Done() {
               if (radioList[j].getElementsByTagName('input')[0].checked) {
 
                 //push answer
-                window.expData.preQuestions.push({
-                  question: question.title,
-                  answer: question.choices[j]
-                });
+                // window.expData.preQuestions.push({
+                //   question: question.title,
+                //   answer: question.choices[j]
+                // });
                 if (question.choices[j].correct) { //correcly answered
                   $.confirm({
                     title: "Main Session 2",
@@ -1349,11 +1355,7 @@ $(document).ready(function() {
       capture: true
     });
 
-    if (Cookies.get('expCookie') == null) {
-      Cookies.set('expCookie', JSON.stringify(window.game), {
-        expires: 365
-      });
-    } else {
+    if (Cookies.get('expCookie') != null) {
       $.confirm({
         title: "Error",
         content: "You have completed part or all of this experiment before already, you may not attempt it again.",
