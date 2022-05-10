@@ -1010,10 +1010,11 @@ function checkCQueue() {
       }
     } else if (window.session == 1) {
       window.expData.bonus += window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Cumulative Bonus",
-        content: "Your cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        content: "The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1051,10 +1052,11 @@ function checkCQueue() {
       return;
     } else if (window.session == 3) {
       window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Cumulative Bonus",
-        content: "Your cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        content: "The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
