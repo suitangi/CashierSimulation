@@ -4,6 +4,13 @@ body {
   overflow-x: hidden;
 }
 
+#progressBar {
+  height: 30px;
+  width: 0px;
+  background-color: #0098ff;
+}
+
+
 #secondColumn {
   position: absolute;
   left: 55%;

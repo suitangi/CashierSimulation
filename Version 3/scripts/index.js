@@ -808,12 +808,12 @@ function startTrial() {
     window.balloon.bonus = window.checkout.bonus;
     window.checkout.time = 900000; //default time is 15 min. (not displayed though);
     document.getElementById('bonusAmountDisplay').innerText = window.checkout.bonus;
-    document.getElementById('bonusAmountDisplay1').innerText = window.balloon.bonus;
+    //document.getElementById('bonusAmountDisplay1').innerText = window.balloon.bonus;
 
     //hide some displays
     document.getElementById('bLine').hidden = true;
     document.getElementById('timeLine').hidden = true;
-    document.getElementById('bBonusLine').hidden = true;
+    //document.getElementById('bBonusLine').hidden = true;
 
     document.getElementById('pDisplay').innerText = '0/3';
 
@@ -844,7 +844,7 @@ function startTrial() {
     window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;
 
     //unhide ballon displays
-    document.getElementById('bBonusLine').hidden = false;
+    //document.getElementById('bBonusLine').hidden = false;
     document.getElementById('bLine').hidden = false;
     document.getElementById('bDisplay').innerText = '0/' + window.expParam.practiceSession2Target;
 
@@ -899,6 +899,7 @@ function startTrial() {
   window.balloon.state = false;
   window.balloon.score = 0;
   window.balloon.number = 0;
+  window.progress = 0;
   window.checkout.entered = [];
   window.checkout.done = false;
   window.checkout.startTime = new Date();
@@ -908,8 +909,8 @@ function startTrial() {
   window.expData.timeSeriesData.push([]);
 
   //session starts with a customer to prevent ballon immediately spawning
-  if (window.session == 2)
-    window.customerQueue++;
+  // if (window.session == 2)
+  //   window.customerQueue++;
 
 
   window.expData.blockData.push([]);
@@ -1139,7 +1140,18 @@ function checkCQueue() {
 
   if (window.session == 2 || window.session == 3 || window.session == 4) {
     if (window.customerQueue == 0 && window.cashiers.avail.indexOf(window.cashiers.number) != -1) {
-      balloonSpawn();
+      window.progress += 0.2;
+      document.getElementById('progressBar').style.width = Math.floor(window.progress);
+      document.getElementById('bDisplay').innerText = Math.floor(window.progress);
+
+      //practice trial done, enable button
+      if (window.session == 2 && window.progress == window.expParam.practiceSession2Target) {
+
+        document.getElementById("nextButton").style = "background-color: #65e098; cursor: pointer;";
+        document.getElementById("nextButton").onclick = function() {
+          practice2Done();
+        }
+      }
     }
   }
 

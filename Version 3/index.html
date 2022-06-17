@@ -27,13 +27,15 @@
     <div id="HUD">
       <p>
         <span class="blueText">Bonus per customer: $<span id="bonusAmountDisplay">0</span></span><br>
-        <span class="greenText" id="bBonusLine">Bonus per 10 balloons: $<span id="bonusAmountDisplay1">0</span></span><br>
-        <span class="redText"><span id="sessBonusLine">Session Bonus Earned</span>: $<span id="bonusDisplay">0</span></span
-      </p>
+        <!-- <span class="greenText" id="bBonusLine">Bonus per 10 balloons: $<span id="bonusAmountDisplay1">0</span></span><br> -->
+        <span class="redText"><span id="sessBonusLine">Session Bonus Earned</span>: $<span id="bonusDisplay">0</span></span </p>
       <p id="secondColumn">
         <span class="blueText">Customers Serviced: <span id="pDisplay">0</span></span><br>
-        <span id="bLine" class="greenText">Balloons Popped: <span id="bDisplay">0</span><br></span>
+        <span id="bLine" class="greenText">Idle Time: <span id="bDisplay">0</span><br></span>
       </p>
+      <div id="progressBarContainer">
+        <div id="progressBar"></div>
+      </div>
       <button id="nextButton">Next</button>
     </div>
     <div id="BalloonContainer">
@@ -41,6 +43,7 @@
         <img src="./img/balloon.png">
       </div>
     </div>
+
   </div>
 
 </body>
