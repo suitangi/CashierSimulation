@@ -613,6 +613,14 @@ function customer(x, y, dest) {
             arrival: this.arrivalTime,
             cashier: d - window.checkout.startTime
           });
+          if (window.idleStart) {
+            window.idleStart = false;
+            window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
+              timestamp: d - window.checkout.startTime,
+              event: 'Idle End',
+              qLength: window.customerQueue
+            });
+          }
         }
       }
 
@@ -696,6 +704,15 @@ function checkoutOnclick() {
     event: 'Customer ' + (window.checkout.amount - 1) + ' departure',
     qLength: window.customerQueue
   });
+
+  if (window.customerQueue == 0) {
+    window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
+      timestamp: d - window.checkout.startTime,
+      event: 'Idle Start',
+      qLength: window.customerQueue
+    });
+    window.idleStart = true;
+  }
 
   document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0 ? ('/' + window.expParam.practiceSession1Target) : '');
   document.getElementById('bonusBar').style.width = window.checkout.amount * window.checkout.bonus * 200;
@@ -1005,18 +1022,22 @@ function startTrial() {
       if (window.session == 0 && window.customerQueue > 3)
         window.customerQueue = 3;
 
-      let d = new Date();
-      window.customers.arrivalTime.push(d - window.checkout.startTime);
+      if (window.session == 1 && window.customerQueue > 180) {
+        window.customerQueue == 180;
+      } else {
 
-      //push time series data
-      window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
-        timestamp: d - window.checkout.startTime,
-        event: 'Customer ' + window.checkout.timeSeriesCnumber + ' arrival',
-        qLength: window.customerQueue - (window.cashiers.avail.indexOf(window.cashiers.number) != -1 ? 1 : 0)
-      });
+        let d = new Date();
+        window.customers.arrivalTime.push(d - window.checkout.startTime);
 
-      window.checkout.timeSeriesCnumber++;
+        //push time series data
+        window.expData.timeSeriesData[window.expData.timeSeriesData.length - 1].push({
+          timestamp: d - window.checkout.startTime,
+          event: 'Customer ' + window.checkout.timeSeriesCnumber + ' arrival',
+          qLength: window.customerQueue - (window.cashiers.avail.indexOf(window.cashiers.number) != -1 ? 1 : 0)
+        });
 
+        window.checkout.timeSeriesCnumber++;
+      }
       addCustomersToQ();
     }, randomExponential(window.customers.ArrivalRate) * 1000);
   }
@@ -1067,7 +1088,7 @@ function checkCQueue() {
             action: function() {
               $.confirm({
                 title: "Practice Session 2",
-                content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, idle time (i.e., when you are not assigned a customer) is now valuable as well. You will earn an extra bonus of $<strong>" + roundBetter(window.checkout.bonus * window.expParam.idleMultiplier, 4) + "</strong> from being idle for 1 second. The real-time bonuses earned during the session from checking out customers and from being idle are respectively displayed by two progress bars. After you have completed at least <b>" + window.expParam.practiceSession1Target + " customers </b> and been idle for <b>" + window.expParam.practiceSession2Target + " seconds</b>, you can move on by clicking the “next” button when you feel ready for the main game.",
+                content: "This is a practice session for the next game. You will not be paid, but you will see the hypothetical amount that you would have earned. In addition to checking out customers, idle time (i.e., when you are not assigned a customer) is now valuable as well. You will earn an extra bonus of $<strong>" + roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier, 4) + "</strong> from being idle for 1 second. The real-time bonuses earned during the session from checking out customers and from being idle are respectively displayed by two progress bars. After you have completed at least <b>" + window.expParam.practiceSession1Target + " customers </b> and been idle for <b>" + window.expParam.practiceSession2Target + " seconds</b>, you can move on by clicking the “next” button when you feel ready for the main game.",
                 type: 'blue',
                 boxWidth: '55%',
                 useBootstrap: false,
@@ -1109,7 +1130,7 @@ function checkCQueue() {
             action: function() {
               $.confirm({
                 title: "Main Session 3",
-                content: "This is a 6-min session. Serving customers is not rewarding. You will be paid a bonus of $<strong>" + roundBetter(window.checkout.bonus * window.expParam.idleMultiplier, 4) + "</strong> per second of idleness.",
+                content: "This is a 6-min session. Serving customers is not rewarding. You will be paid a bonus of $<strong>" + roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier, 4) + "</strong> per second of idleness.",
                 type: 'blue',
                 boxWidth: '55%',
                 autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
@@ -1161,7 +1182,7 @@ function checkCQueue() {
   if (window.session == 2 || window.session == 3 || window.session == 4) {
     if (window.customerQueue == 0 && window.cashiers.avail.indexOf(window.cashiers.number) != -1) {
       window.progress += 0.2;
-      let idleBonus = roundBetter(window.checkout.bonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4)
+      let idleBonus = roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4)
       document.getElementById('progressBar').style.width = idleBonus * 200;
       document.getElementById('bDisplay').innerText = idleBonus;
 
@@ -1309,7 +1330,7 @@ function practice2Done() {
                         action: function() {
                           $.confirm({
                             title: "Main Session 2",
-                            content: "This is a 6-min session. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + roundBetter(window.checkout.bonus * window.expParam.idleMultiplier, 4) + "</strong> per second of idleness.",
+                            content: "This is a 6-min session. You will be paid a bonus of <strong>$" + window.checkout.bonus + "</strong> per customer served, and a bonus of $<strong>" + roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier, 4) + "</strong> per second of idleness.",
                             type: 'blue',
                             boxWidth: '55%',
                             autoClose: 'close|' + window.expParam.popupAutocloseTime * 60000,
