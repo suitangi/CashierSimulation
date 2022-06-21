@@ -25,17 +25,23 @@
     </div>
     <span id="timeLine"><strong>Time Remaining: <span id="TimeDisplay">15:00</span></strong></span>
     <div id="HUD">
-      <p>
-        <span class="blueText">Bonus per customer: $<span id="bonusAmountDisplay">0</span></span><br>
+      <div id="firstColumn">
+        <span class="blueText">Bonus/customer: $<span id="bonusAmountDisplay">0</span></span><br>
         <!-- <span class="greenText" id="bBonusLine">Bonus per 10 balloons: $<span id="bonusAmountDisplay1">0</span></span><br> -->
-        <span class="redText"><span id="sessBonusLine">Session Bonus Earned</span>: $<span id="bonusDisplay">0</span></span </p>
+        <span class="redText"><span id="sessBonusLine">Session Bonus Earned</span>: $<span id="bonusDisplay">0</span></span><br>
+        <div id="bonusBarContainer">
+          <div id="bonusBar"></div>
+        </div>
+        <span id="bLine" class="greenText"><span id="idleBonusLine">Session Bonus from Idle</span>: $<span id="bDisplay">0</span><br></span>
+        <div id="progressBarContainer">
+          <div id="progressBar"></div>
+        </div>
+      </div>
       <p id="secondColumn">
         <span class="blueText">Customers Serviced: <span id="pDisplay">0</span></span><br>
-        <span id="bLine" class="greenText">Idle Time: <span id="bDisplay">0</span><br></span>
+
       </p>
-      <div id="progressBarContainer">
-        <div id="progressBar"></div>
-      </div>
+
       <button id="nextButton">Next</button>
     </div>
     <div id="BalloonContainer">

@@ -14,13 +14,15 @@ window.expParam = {
   practiceArrivalRate: 1, //per second
   practiceCashierNumber: 0,
 
+  idleMultiplier: 1/5, //the idleness multiplier for bonuses
+
   popupAutocloseTime: 2, //minutes
 
   practiceSession1Target: 3, //target number of customer checkouts
   practiceSession1Time: 6,
   mainSession1ArrivalRate: 60, //customers per second
   mainSession1Time: 3, //minutes
-  practiceSession2Target: 200, //target number for idleness
+  practiceSession2Target: 30, //target number for idleness
   practiceSession2ArrivalRate: 1 / 60, //customer per second
   practiceSession2Time: 6,
   mainSession2Time: 6, //minutes
@@ -112,12 +114,6 @@ window.expParam = {
       correct: true
     }, {
       text: "Checking out customers slower",
-      correct: false
-    }, {
-      text: "Popping balloons faster",
-      correct: false
-    }, {
-      text: "Popping balloons slower",
       correct: false
     }, {
       text: "None of the choices",
