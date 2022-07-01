@@ -594,7 +594,7 @@ function customer(x, y, dest) {
 
         let d = new Date();
 
-        if (this.dest != window.cashiers.number) {
+        if (this.dest != window.cashiers.number) { //legacy: for more than 1 cashiers
           setTimeout(function(initialD) {
             removeCust(initialD);
             window.cashiers.avail.push(initialD);
@@ -643,6 +643,8 @@ function removeCust(c) {
 }
 
 function loadCheckout() {
+  var audio = new Audio('./sounds/ding.mp3');
+  audio.play();
   shuffle(window.expParam.itemset);
   window.checkout.items = window.expParam.itemset.slice(0, window.expParam.items);
   let li = document.getElementById('sliderArea').children;
