@@ -658,7 +658,7 @@ function loadCheckout() {
     window.checkout.items[i] = {
       "name": window.checkout.items[i]
     }
-    window.checkout.items[i].price = Math.floor(Math.random() * steps) * window.expParam.sliderPrecision;
+    window.checkout.items[i].price = Math.ceil(Math.random() * (steps - 1)) * window.expParam.sliderPrecision;
 
     window.checkout.entered[i] = 0;
     txt = "$" + window.checkout.items[i].price;
@@ -826,7 +826,7 @@ function startTrial() {
     window.balloon.bonus = window.checkout.bonus;
     window.checkout.time = 900000; //default time is 15 min. (not displayed though);
     document.getElementById('bonusAmountDisplay').innerText = window.checkout.bonus;
-    //document.getElementById('bonusAmountDisplay1').innerText = window.balloon.bonus;
+    document.getElementById('bonusAmountDisplay1').innerText = roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier, 4);
 
     //setup hud displays
     document.getElementById('sessBonusLine').innerText = "Session Bonus Earned (Hypothetical)";
@@ -834,7 +834,8 @@ function startTrial() {
     //hide some displays
     document.getElementById('bLine').hidden = true;
     document.getElementById('timeLine').hidden = true;
-    //document.getElementById('bBonusLine').hidden = true;
+    document.getElementById('bBonusLine').hidden = true;
+    document.getElementById('idleLine').hidden = true;
 
     document.getElementById('pDisplay').innerText = '0/3';
 
@@ -867,8 +868,9 @@ function startTrial() {
 
     window.customers.ArrivalRate = window.expParam.practiceSession2ArrivalRate;
 
-    //unhide ballon displays
-    //document.getElementById('bBonusLine').hidden = false;
+    //unhide idlesness (old balloon) displays
+    document.getElementById('bBonusLine').hidden = false;
+    document.getElementById('idleLine').hidden = false;
     document.getElementById('bLine').hidden = false;
     document.getElementById('bDisplay').innerText = '0';
 
@@ -1070,12 +1072,13 @@ function checkCQueue() {
         practice2Done();
       }
     } else if (window.session == 1) {
-      window.expData.bonus += window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus);
+      //window.expData.bonus += window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus);
+      //window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Main Session 1 Complete",
-        content: "Number of customers served in this session: " + window.checkout.amount + "<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        content: "Number of customers served in this session: " + window.checkout.amount + "<br>Cumulative idle time you enjoyed in this session: " + Math.floor(window.progress) + "s<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1112,12 +1115,13 @@ function checkCQueue() {
       });
       return;
     } else if (window.session == 3) {
-      window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      // window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Main Session 2 Complete",
-        content: "Number of customers served in this session: " + window.checkout.amount + "<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        content: "Number of customers served in this session: " + window.checkout.amount + "<br>Cumulative idle time you enjoyed in this session: " + Math.floor(window.progress) + "s<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1155,12 +1159,13 @@ function checkCQueue() {
 
       return;
     } else if (window.session == 4) {
-      window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      //window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
-        title: "Demographic Questions",
-        content: "Congratulations on completing the experiment! You have successfully earned <strong>$" + window.expData.bonus + "</strong> in bonus payments. There are a few questions left for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
+        title: "Main Session 3 Complete",
+        content: "Number of customers served in this session: " + window.checkout.amount + "<br>Cumulative idle time you enjoyed in this session: " + Math.floor(window.progress) + "s<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1170,7 +1175,23 @@ function checkCQueue() {
             text: "Continue",
             btnClass: 'btn-blue',
             action: function() {
-              postQuestions(0);
+              $.confirm({
+                title: "Demographic Questions",
+                content: "Congratulations on completing the experiment! There are a few questions left for you to help us better understand the results of the study. You will be rewarded your payment upon completion of the short survey.",
+                type: 'blue',
+                boxWidth: '55%',
+                useBootstrap: false,
+                typeAnimated: true,
+                buttons: {
+                  close: {
+                    text: "Continue",
+                    btnClass: 'btn-blue',
+                    action: function() {
+                      postQuestions(0);
+                    }
+                  }
+                }
+              });
             }
           }
         }
@@ -1183,6 +1204,7 @@ function checkCQueue() {
     if (window.customerQueue == 0 && window.cashiers.avail.indexOf(window.cashiers.number) != -1) {
       window.progress += 0.2;
       let idleBonus = roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4)
+      document.getElementById('idleAmountDisplay1').innerText = Math.floor(window.progress) + ((window.session == 2) ? ('/' + window.expParam.practiceSession2Target) : '');
       document.getElementById('progressBar').style.width = idleBonus * 200;
       document.getElementById('bDisplay').innerText = idleBonus;
 

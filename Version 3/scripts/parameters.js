@@ -35,7 +35,7 @@ window.expParam = {
 
   customerImages: ['./img/person3.png', './img/person4.png', './img/person5.png', './img/person6.png'],
 
-  itemset: ["Chocolate", "Soda", "Cheese", "Cake", "Yogurt", "Cereal", "Chips", "Bananas", "Tissues", "Milk", "Bread", "Honey", "Broccoli", "Spinach", "Peppers"],
+  itemset: ["Chocolate", "Soda", "Cheese", "Cake", "Yogurt", "Cereal", "Chips", "Bananas", "Tissues", "Milk", "Bread", "Honey", "Broccoli", "Spinach", "Peppers", "Syrup", "Diapers", "Pudding", "Tea", "Waffle", "Toothpaste", "Mushroom", "Nuts", "Pot-stickers", "Crackers", "Salmon", "Eggwich", "Multivitamin", "Coconut", "Detergent", "Vodka", "Tequila", "Wipes", "Sanitizer", "Battery", "Lightbulb", "Flowers", "Plant food", "Scissors", "Tape", "Staple"],
 
   postquestions: [{
     question: "What is your gender?",
@@ -75,11 +75,11 @@ window.expParam = {
     type: 'choice',
     title: 'External Devices'
   }, {
-    question: "What difficulties, if any, did you experience when playing the game (understanding instructions/payment, moving sliders, popping balloons etc.)? (optional; extra bonus: $0.5)",
+    question: "What difficulties, if any, did you experience when playing the game (understanding instructions/payment, understanding progress bars, moving sliders etc.)? (optional; extra bonus: $0.5)",
     type: 'textbox',
     placeholder: "Enter your response here",
     required: false,
-    title: 'Difficulties'
+    title: 'Feedback'
   }],
   confirm_popup: {
     title: "Submission Complete!",
@@ -101,7 +101,7 @@ window.expParam = {
     //  title: 'Task'
     //},
     {
-      question: 'This is an individual task, composed of multiple sessions, where you will be acting as a cashier in a supermarket. Your customers each have 3 items in their cart (see the illustration below). To process a customer’s order, slide each bar to match the listed price. Once all items are matched correctly, click the "Submit Cart" button to move to the next cart. The “Submit Cart” button will remain inactive until you correctly set all three prices. <br>The figure below shows an example of what the game looks like:<br><img src="./img/screen1.png"> <br><br> Further instructions will be provided as you move along the experiment.',
+      question: 'This is an individual task, composed of multiple sessions, where you will be acting as a cashier in a supermarket. Customers wait in a single line behind the fence. Your customers each have 3 items in their cart (see the illustration below). To process a customer’s order, slide each bar to match the listed price. Once all items are matched correctly, click the "Submit Cart" button to move to the next cart. The "Submit Cart" button will remain inactive until you correctly set all three prices. <br>The figure below shows an example of what the game looks like:<br><img src="./img/screen1.png"> <br><br> Further instructions will be provided as you move along the experiment.',
       type: 'text',
       title: 'Environment'
     },
