@@ -7,7 +7,7 @@ body {
 #bonusBar {
   height: 20px;
   width: 0px;
-  background-color: #990909;
+  background-color: #091799;
   transition: width 1s;
   border-radius: 10px;
 }

@@ -716,7 +716,7 @@ function checkoutOnclick() {
     window.idleStart = true;
   }
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0 ? ('/' + window.expParam.practiceSession1Target) : '');
+  document.getElementById('pDisplay').innerText = window.checkout.amount + ((window.session == 0 || window.session == 2) ? ('/' + window.expParam.practiceSession1Target) : '');
   document.getElementById('bonusBar').style.width = window.checkout.amount * window.checkout.bonus * 200;
   document.getElementById('bonusDisplay').innerText = roundBetter(window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus), 3);
   // if (window.session != 0 && window.session != 2)
@@ -875,6 +875,7 @@ function startTrial() {
     document.getElementById('idleLine').hidden = false;
     document.getElementById('bLine').hidden = false;
     document.getElementById('bDisplay').innerText = '0';
+    document.getElementById('pDisplay').innerText = '0/3';
 
     //hide time display
     document.getElementById('timeLine').hidden = true;
@@ -966,7 +967,7 @@ function startTrial() {
   canvas.height = 54 * window.cashiers.amount;
   canvas.width = window.expParam.customerWalkAreaWidth;
 
-  document.getElementById('pDisplay').innerText = window.checkout.amount + (window.session == 0 ? ('/' + window.expParam.practiceSession1Target) : '');
+  document.getElementById('pDisplay').innerText = window.checkout.amount + ((window.session == 0 || window.session == 2)? ('/' + window.expParam.practiceSession1Target) : '');
   document.getElementById('bonusDisplay').innerText = roundBetter(window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus), 3);
   // document.getElementById('bonusDisplay1').innerText =  roundBetter(window.expData.bonus + (Math.floor(window.balloon.score / 10) * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus), 2);
 
@@ -1074,13 +1075,13 @@ function checkCQueue() {
         practice2Done();
       }
     } else if (window.session == 1) {
-      //window.expData.bonus += window.balloon.score / 10 * window.balloon.bonus + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += (window.checkout.amount * window.checkout.bonus);
       //window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
       $.confirm({
         title: "Main Session 1 Complete",
-        content: "Number of customers served in this session: " + window.checkout.amount + "<br>Cumulative idle time you enjoyed in this session: " + Math.floor(window.progress) + "s<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
+        content: "Number of customers served in this session: " + window.checkout.amount + "<br>The cumulative bonus you have earned so far is <strong>$" + window.expData.bonus + "</strong>",
         type: 'blue',
         boxWidth: '55%',
         useBootstrap: false,
@@ -1117,7 +1118,7 @@ function checkCQueue() {
       });
       return;
     } else if (window.session == 3) {
-      // window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += (window.checkout.amount * window.checkout.bonus);
       window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);
@@ -1161,7 +1162,7 @@ function checkCQueue() {
 
       return;
     } else if (window.session == 4) {
-      //window.expData.bonus += (window.balloon.score / 10 * window.balloon.bonus) + (window.checkout.amount * window.checkout.bonus);
+      window.expData.bonus += (window.checkout.amount * window.checkout.bonus);
       window.expData.bonus += roundBetter(window.expData.checkoutBonus * window.expParam.idleMultiplier * Math.floor(window.progress), 4);
       window.expData.bonus = roundBetter(window.expData.bonus, 3);
       document.getElementById('StimArea').setAttribute('hidden', true);

@@ -70,8 +70,9 @@ window.expParam = {
     //   type: 'choice',
     //   title: 'Race'
     // }, {
-    question: "Do you use the following devices?",
+    question: "Do you use the following devices? (Select all that applies)",
     choices: ["External mouse", "Touch pad", "Touch Screen", "Other"],
+    multi: true,
     type: 'choice',
     title: 'External Devices'
   }, {
