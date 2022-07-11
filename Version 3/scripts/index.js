@@ -281,6 +281,17 @@ function postQuestions(qNum) {
           html += '<label class="radioContainer" onclick="otherRadioClick()"><input type="radio" name="radio"><label>Other: <input type="text" class="radioOther"></label><span class="checkmark"></span> </label>'
         }
       }
+    }else if (question.type == 'select') {
+      html = question.question + '<br>';
+      for (var i = 0; i < question.choices.length; i++) {
+        if (question.choices[i].toLowerCase() != 'other') {
+          html += '<label class="radioContainer">' +
+            question.choices[i] +
+            '<input type="checkbox" name="radio"> <span class="checkmark square"></span> </label>'
+        } else {
+          html += '<label class="radioContainer"><input type="checkbox" name="radio"><label>Other: <input type="text" class="radioOther"></label><span class="checkmark square"></span> </label>'
+        }
+      }
     } else if (question.type == 'text') {
       html = question.question;
     } else if (question.type == "number") {
@@ -360,6 +371,50 @@ function postQuestions(qNum) {
                 type: 'red',
               });
               return false;
+            } else if (question.type == 'select') { //multi select
+              var radioList = this.$content.find($('.radioContainer'));
+              let anss = [];
+              let indexes = [];
+              for (var j = 0; j < radioList.length; j++) {
+                if (radioList[j].getElementsByTagName('input')[0].checked) {
+
+                  if (question.choices[j].toLowerCase() != 'other') {
+                    anss.push(question.choices[j]);
+                    indexes.push(j);
+                  } else if (this.$content.find('.radioOther').val().length == 0) {
+                    $.alert({
+                      title: 'Error',
+                      boxWidth: '25%',
+                      useBootstrap: false,
+                      content: 'If you select other, please do not leave it blank.',
+                      type: 'red',
+                    });
+                    return false;
+                  } else {
+                    anss.push('Other: 'this.$content.find('.radioOther').val());
+                    indexes.push(j);
+                  }
+
+                }
+              }
+              if (anss.length != 0) {
+                window.expData.postQuestions.push({
+                  question: question.title,
+                  index: indexes,
+                  answer: anss
+                });
+                postQuestions(qNum + 1);
+                return true;
+              } else {
+                $.alert({
+                  title: 'Error',
+                  boxWidth: '25%',
+                  useBootstrap: false,
+                  content: 'Please select an answer',
+                  type: 'red',
+                });
+                return false;
+              }
             } else if (question.type == 'number') {
               var textAns = this.$content.find('#ageInput').val();
               if (!textAns || parseInt(textAns) < question.min || parseInt(textAns) > question.max) {
@@ -932,6 +987,9 @@ function startTrial() {
     document.getElementById('bDisplay').innerText = '0';
     document.getElementById('pDisplay').innerText = '0';
   }
+
+  //change the label
+  document.getElementById('expLabel').innerText = window.expParam.sessionLabels[window.session];
 
   window.cashiers.avail = [];
   window.customers.list = [];

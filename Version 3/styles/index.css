@@ -4,6 +4,14 @@ body {
   overflow-x: hidden;
 }
 
+#expLabel {
+  position: absolute;
+  top: 40px;
+  right: 25%;
+  transform: translate(40%, 0px);
+  font-size: 25px;
+}
+
 #bonusBar {
   height: 20px;
   width: 0px;
@@ -308,6 +316,10 @@ body {
   width: 15px;
   background-color: #eee;
   border-radius: 50%;
+}
+
+.checkmark.square {
+  border-radius: 1px !important;
 }
 
 .radioContainer:hover input~.checkmark {

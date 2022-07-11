@@ -32,6 +32,7 @@ window.expParam = {
 
   bonus: [0.02, 0.04, 0.06, 0.08, 0.1],
   customerArrivalRates: [1 / 120, 2 / 120, 3 / 120, 4 / 120, 5 / 120], //per second
+  sessionLabels: ['Practice 1', 'Main Session 1', 'Practice 2', 'Main Session 2', 'Main Session 3'],
 
   customerImages: ['./img/person3.png', './img/person4.png', './img/person5.png', './img/person6.png'],
 
@@ -71,9 +72,8 @@ window.expParam = {
     //   title: 'Race'
     // }, {
     question: "Do you use the following devices? (Select all that applies)",
-    choices: ["External mouse", "Touch pad", "Touch Screen", "Other"],
-    multi: true,
-    type: 'choice',
+    choices: ["External mouse", "Touch pad", "Touch Screen", "Pen Tablet", "Other"],
+    type: 'select',
     title: 'External Devices'
   }, {
     question: "What difficulties, if any, did you experience when playing the game (understanding instructions/payment, understanding progress bars, moving sliders etc.)? (optional; extra bonus: $0.5)",
