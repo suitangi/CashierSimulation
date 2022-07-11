@@ -391,7 +391,7 @@ function postQuestions(qNum) {
                     });
                     return false;
                   } else {
-                    anss.push('Other: 'this.$content.find('.radioOther').val());
+                    anss.push('Other: ' + this.$content.find('.radioOther').val());
                     indexes.push(j);
                   }
 
@@ -487,7 +487,8 @@ function dataToCSV() {
 
   var csv = "";
   csv += 'Bonus,' + window.expData.bonus + '\n';
-  csv += 'Lambda' + window.expData.arrivalRate + '\n';
+  csv += 'Lambda,' + window.expData.arrivalRate + '\n';
+  csv += 'IdleMultiplier, ' + window.expParam.idleMultiplier + '\n';
   csv += '\nPrequestion,Answer\n'
   for (i = 0; i < window.expData.preQuestions.length; i++) {
     csv += "\"" + window.expData.preQuestions[i].question + '","' +
